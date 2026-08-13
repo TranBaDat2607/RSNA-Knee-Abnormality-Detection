@@ -55,7 +55,10 @@ python scripts/llm_label_gold.py
 ## Repo layout
 
 ```
-eda/                    EDA + baseline imaging model notebook
+eda/                    EDA + baseline imaging model notebook (narrative, one-off analysis)
+src/rsna_knee/          module-per-concern package version of the same imaging pipeline
+tests/                  unit tests for src/rsna_knee (the DICOM-free modules run locally
+                         without Kaggle data; see src/rsna_knee/README.md)
 scripts/llm_label_gold.py   LLM report-labeling pipeline
 data/                   gold labels, LLM-generated labels, usage logs
 docs/requirements.md    competition task description
@@ -70,10 +73,25 @@ the competition page to download it.
 
 ```bash
 pip install pandas numpy torch transformers pydicom scikit-learn matplotlib seaborn python-dotenv openai
+
+# to work on src/rsna_knee itself:
+pip install -e ".[dev]"
+pytest
 ```
 
 Requires an OpenAI API key in `.env` (see `.env.example`) to run the labeling script; the
 notebook itself only needs the packages above plus the downloaded competition data.
+
+## The `src/rsna_knee` package
+
+The notebook (`eda/rsna-knee-data-structure-eda-baseline.ipynb`) is where the EDA and the
+narrative reasoning behind each pipeline decision live. `src/rsna_knee/` is the same
+training/inference pipeline reorganized into a plain-`.py`, module-per-concern package —
+DICOM ingestion, laterality/slot resolution, physical-scale caching, gold+LLM label
+merging, the DINOv2+SlotHead model, the 4-fold CV training loop, and rank-mean submission
+writing each get their own module, with unit tests for everything that doesn't require
+Kaggle's mounted DICOM data. See `src/rsna_knee/README.md` for the module map and how to
+run it.
 
 ## License
 

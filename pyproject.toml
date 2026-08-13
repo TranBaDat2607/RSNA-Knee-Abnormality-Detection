@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rsna-knee"
+version = "0.1.0"
+description = "Modular training/inference pipeline for the RSNA Knee Abnormality Detection competition"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "pandas",
+    "pydicom",
+    "torch",
+    "transformers",
+    "scikit-learn",
+]
+
+[project.optional-dependencies]
+viz = ["matplotlib", "seaborn"]
+dev = ["pytest"]
+
+[project.scripts]
+rsna-knee = "rsna_knee.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["rsna_knee*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

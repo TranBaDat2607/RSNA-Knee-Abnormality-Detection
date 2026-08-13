@@ -1,0 +1,32 @@
+# Secrets
+.env
+
+# JetBrains
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Raw competition data (large / redistribution-restricted by Kaggle rules)
+data/train.csv
+data/test.csv
+data/*.dcm
+data/train_series/
+data/test_series/
+
+# Model weights / training artifacts (large, regenerable)
+*.ckpt
+*.pt
+*.pth
+
+# OS
+.DS_Store
+Thumbs.db

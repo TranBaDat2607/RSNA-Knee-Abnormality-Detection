@@ -1,0 +1,4 @@
+{"timestamp": "2026-08-10 17:51:11", "out_csv": "data\\llm_labels_gpt54mini.csv", "tokens_used_this_run": 2520, "studies_labelled_this_run": 3, "total_labelled": 3, "total_remaining": 0, "stopped_early_due_to_budget": false}
+{"timestamp": "2026-08-10 17:52:10", "out_csv": "data\\llm_labels_gpt54mini.csv", "tokens_used_this_run": 34783, "studies_labelled_this_run": 58, "total_labelled": 58, "total_remaining": 0, "stopped_early_due_to_budget": false}
+{"timestamp": "2026-08-10 18:32:05", "out_csv": "data\\llm_labels_full.csv", "tokens_used_this_run": 2397594, "studies_labelled_this_run": 4374, "total_labelled": 4374, "total_remaining": 33, "stopped_early_due_to_budget": true}
+{"timestamp": "2026-08-10 18:34:38", "out_csv": "data\\llm_labels_full.csv", "tokens_used_this_run": 17649, "studies_labelled_this_run": 33, "total_labelled": 4407, "total_remaining": 0, "stopped_early_due_to_budget": false}

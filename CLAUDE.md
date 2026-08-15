@@ -275,3 +275,130 @@ family list above. Given gpt-5.4-mini's real-time cost is now cheap enough
 that the full corpus likely fits in ~1 real-time run anyway, Batch API is
 probably not needed for this corpus size, but worth reconsidering if the
 per-study cost estimate turns out higher in practice.
+
+## Second backbone arm (EfficientNet-B3) -- built, gold-only smoke test inconclusive
+
+`src/rsna_knee/model/backbone.py` now has two backbone builders, both feeding the same
+`Model`/`SlotHead` wiring (`build_model()` unchanged in signature): `build_model()`
+(DINOv2) and `build_efficientnet_model()` (EfficientNet-B3, the Melas-Kyriazi
+`efficientnet_pytorch` implementation). `training/loop.py`'s `train_one_fold()` takes an
+optional `model_builder` callable so either arm trains through the same loop/OOF
+machinery. `training/metrics.py` gained `per_target_auc` and `paired_bootstrap_auc_diff`
+for comparing two arms target-by-target on a small annotated set without over-trusting
+noise (see git history for the reasoning -- Hanley-McNeil SE on 58 gold studies gives
+~+/-0.10-0.16 per-target, so a paired bootstrap on the AUC *difference* is the only
+statistically sound way to ask "is arm A actually better than arm B here").
+
+**Bug fixed along the way:** `build_model()`'s DINOv2 loader assumed an HF-format
+directory (`config.json` + weights via `AutoModel.from_pretrained`), but the actual
+public Kaggle dataset for this competition
+(`girishbose/dinov2-vitb14-rsna-knee`) is a bare `facebookresearch/dinov2` torch.hub
+checkpoint -- no `config.json`, different key names, fused `qkv` instead of separate
+query/key/value. `find_dinov2_raw()` (`paths.py`) + `_remap_dinov2_raw_state_dict()`
+(`backbone.py`) handle that format now; the remap was verified **byte-identical** to the
+reference `facebookresearch/dinov2` architecture's own output at the checkpoint's native
+518px resolution before being trusted (the two only diverge in position-embedding
+interpolation at other resolutions, which end-to-end fine-tuning already adapts to).
+`build_model()` tries the HF path first, falls back to the raw-checkpoint path
+automatically -- no config change needed to use either.
+
+### `scripts/compare_backbones_gold.py` -- gold-only complementarity check
+
+Trains both arms on **the 58 gold-annotated studies only** (not the ~4,400-study
+LLM-labeled corpus), 4-fold, to cheaply check whether DINOv2 and EfficientNet-B3 make
+complementary errors before committing to the expensive full-corpus run for both arms.
+Outputs per-target AUC for each arm, the paired-bootstrap CI on their difference,
+Spearman correlation between their raw predictions (the actual complementarity signal,
+independent of which one's more accurate), and a rank-blend AUC.
+
+**Run 2 (2026-08-13, `data/backbone_compare_gold/`): DONE, converged, weak/mixed
+result.** Ran on Kaggle; full details in `data/backbone_compare_gold/README.md`
+(run 1's CPU/P100 misfire is kept there too, archived under
+`run1_cpu_undertrained/`, as the record of the GPU issue and its fix -- the assigned
+Tesla P100 (`sm_60`) isn't supported by this Kaggle image's PyTorch build (`sm_70`+
+only); the fix was `machine_shape: "NvidiaTeslaT4"` in `kernel-metadata.json`, named
+explicitly in the kaggle-cli docs (`kernels_metadata.md`), which also flags
+`NvidiaTeslaP100` as having known compatibility issues -- not discoverable from the
+installed `kaggle`/`kagglesdk` packages alone).
+
+Run 2 (T4, full 10 epochs, 8.7 min) converged properly (DINOv2 per-fold AUCs 0.54-0.68,
+none below chance). **Macro AUC: DINOv2 0.531, EfficientNet-B3 0.444, naive rank-blend
+0.496.** Complementarity signal is weak and mixed: per-target Spearman correlation
+between the two arms' raw predictions is low almost everywhere (mean `|rho|` 0.19,
+several near zero, Lateral OA -0.46) -- the right precondition for combining two
+models -- but EfficientNet-B3 is also just less accurate overall (DINOv2 wins the point
+estimate on 9/12 targets), and only Medial OA has a paired-bootstrap CI that excludes
+zero (favoring DINOv2). **Rank-blending does not help at this scale**: naive 50/50
+rank-mean underperforms DINOv2 alone on 9/12 targets and only beats *both* arms
+individually on 1/12 (Lateral OA). Recommendation: don't commit to the expensive
+full-corpus dual-arm run on this evidence -- if pursuing EfficientNet-B3 further, tune
+its own LR/unfreeze schedule first (it's currently using DINOv2's untouched
+hyperparameters) and/or try an OOF-weighted blend instead of naive rank-mean.
+
+## External ensemble notebook (`tranbadat/rsna-knee-abnormality`, Kaggle) -- 0.910
+public LB, blend hardened to 0.909 (flat), real gains still open
+
+A separate, **private, multi-person Kaggle notebook** -- `tranbadat/rsna-knee-abnormality`,
+not part of this git repo -- scored **0.910 public LB** on 2026-08-14, well above this
+repo's own single-arm pipeline (0.813, the `f7fc901` submission described above). Pulled
+via `kaggle kernels pull tranbadat/rsna-knee-abnormality -m` for inspection; the patched
+copy and both runs' logs/outputs live in a session scratchpad, not checked into this repo.
+
+**What it actually is**: inference-only (no training happens in-kernel -- `enable_internet:
+false`), blending three pretrained arms loaded as teammates' Kaggle datasets rather than
+trained by this repo's pipeline: a 24-member DINOv2 TTA ensemble (`pilkwang/rsna-knee-weights`,
+two physical-scale crop configs, jittered multi-window TTA), a 5-fold DINOv3-small arm
+(`mattiaangeli/knee-mri-fold-weights`, `vit_small_patch16_dinov3.lvd1689m`, timm, custom
+"CodexResidualPool" head), and a 5-head RadImageNet-pretrained ResNet-50 arm ("Rad15",
+`marwanmath/resnet-50-radimagenet-marwan`). Combined via fixed, LB-validated weights
+(0.65/0.35 DINOv2:DINOv3, then 0.75/0.25 adding RadImageNet), then a further "V11" layer
+blends several candidate recipes (`safe`, `challenger`, `d3_heavy`, `target_stability`,
+`uncertainty`, `diversity`) -- `challenger` was the one actually submitted for the 0.910
+score.
+
+**Diagnosis**: `challenger` put up to 30% of its weight on three terms
+(`target_stability`, `uncertainty`, `diversity`) whose per-target alpha weights were
+computed from fold-correlation/std-dev over Kaggle's **3-row public dry-run `test.csv`**
+-- statistically indefensible at n=3 (confirmed directly in the notebook's own
+`v11_ensemble_diagnostics.json`: correlations only land on a handful of discrete values,
+the fingerprint of a 3-point sample). The two base weights it built on (0.65/0.35,
+0.75/0.25) are the actually-evidence-backed part, validated across many real prior public-LB
+submissions, not this run's 3 rows.
+
+**Fix tried and validated**: patched the notebook's blend cell so `submission.csv`
+defaults to `grounded = 0.55*exact + 0.45*rankfold` instead of `challenger` -- both
+`exact` and `rankfold` are built purely from the two fixed, LB-validated weights, zero
+exposure to the n=3-fit terms (`challenger`/`safe`/etc. are still computed and written as
+candidate files, just no longer the default). Pushed as kernel version 2, validated end
+to end before submitting: schema match, no nulls/non-finite, deterministic vs the v1 run
+(confirms nothing upstream broke), and diffed against the known-0.910 `challenger` output
+(identical on 11/12 targets on the 3-row dry-run set, only MCL differs).
+
+**Result (submission `55523770`, 2026-08-15): 0.909** -- flat vs 0.910 (delta 0.001,
+noise-level). Reads as a real, if modest, confirmation: removing 30% of `challenger`'s
+weight (the n=3-fit terms) cost essentially nothing, consistent with those terms adding
+no real signal. But it also means blend-recipe reshuffling among the *same* three arms
+has hit its ceiling -- further gains need one of: multi-scale TTA added to this repo's
+own `inference/predict.py` (currently single-crop, group-averaged only, no multi-window
+jitter or multi-scale ensembling, unlike the notebook's DINOv2 arm), LLM label-quality
+work on the weakest targets (Synovitis 0.709, Effusion 0.777, Lateral OA 0.839, PF OA
+0.833 gold agreement-AUC), or a genuinely new architecture/pretraining-domain arm --
+specifically a **RadImageNet-style, radiology-pretrained CNN**, not EfficientNet-B3
+(natural-image-pretrained, same failure-mode family as DINOv2's ViT, which is why the
+gold-only smoke test above found weak/mixed complementarity) -- trained on the full
+corpus and validated on gold-58 first.
+
+**Kaggle CLI operational notes** (non-obvious, cost real time to work out):
+- `kaggle competitions submit -f <local-path>` fails with an opaque, bodyless 400 for
+  this competition because it's a **Code Competition** -- submissions must reference a
+  kernel's own output, not a raw file upload. Correct form:
+  `kaggle competitions submit <comp> -k <kernel> -v <version> -f <output-filename>
+  -m <message>` (the `-f` value is the *output filename the kernel wrote*, e.g.
+  `submission.csv`, not a local path).
+- Grading a submitted kernel version (rerun against the hidden test set) took **~2.5
+  hours** for this notebook, vs. ~5-9 min for a dev run against the 3-row public
+  dry-run `test.csv` -- the RadImageNet arm alone ran at ~90-120s/study on 3 studies,
+  and the cache-sizing log line references a real hidden test set around 1,322 studies,
+  so per-study cost likely doesn't amortize away at scale. Budget hours, not minutes,
+  before assuming a pending submission has failed; the CLI gives no progress signal or
+  error detail while `SubmissionStatus.PENDING`.

@@ -36,6 +36,26 @@ baseline `EDA_BASELINE_RESULTS.md` measures against.
 | `pipeline.py` | `run()` / `run_safe()` — orchestrates all of the above into the same 4-fold CV run `main()` performs in the notebook. |
 | `cli.py` | `python -m rsna_knee.cli` / the `rsna-knee` console script. |
 
+### `mil/` — the 2.5-D CoAtNet attention-MIL family
+
+The strongest representation available for this competition (0.91–0.92 gold-58 macro AUC per
+public checkpoint vs 0.84 for the DINOv2 slot model above; see `docs/experiment_ledger.md`).
+
+| Module | What it does |
+|---|---|
+| `mil/recipes.py` | `Slot` / `VolumeRecipe` (which series, how many slices, span, crop, pixel grid) and `ArmSpec` (checkpoint + recipe + eval windows). `PUBLIC_RAPTOR_ARMS` lists the public checkpoints worth running — without the no-op reversed-order view and the redundant v4. |
+| `mil/volume.py` | `build_volume` — DICOM study → `uint8` slice stack + mask, reproducing the public checkpoints' preprocessing exactly (geometry ordering, span sampling, 2–98th percentile window, physical centre crop, area resize). |
+| `mil/windows.py` | Eval / train window-centre selection and triplet assembly; `to_model_input` resizes and normalises on the GPU. |
+| `mil/model.py` | `MILClassifier` — backbone + per-finding attention head, state-dict compatible with the public checkpoints; `load_checkpoint`. |
+| `mil/blend.py` | `rank_pct`, `weighted_rank_mean`, `logit_blend`. |
+| `mil/infer.py` | `predict_arms` — walks each GPU's shard of studies, decodes a study's slices once for every recipe (memoised listings/pixels), runs every arm, and contains per-study failures to that study. |
+| `mil/corpus.py` | `Corpus` — the public pre-decoded 44 × 336 training corpus (both parts), memory-mapped lazily so DataLoader workers never copy it. `build_volume(CORPUS44_336)` reproduces it exactly. |
+| `mil/orientation.py` | `slot_transform` / `canonical_transforms` / `transform_windows` — maps every window onto one anatomical orientation (right knees mirrored so lateral is always on the same side); `resolve_side` with a tag-only mode, since patient-x geometry does not encode side on untagged sites. |
+| `mil/teachers.py` | `read_teacher` — the public report-label tables used as weak targets (flight hybrid, top-5 mean, Raptor's own), with their measured gold agreement and the list of tables that leak gold labels. |
+| `mil/train.py` | `run` / `parse_args` — corpus training loop: fp16 + GradScaler, gradient checkpointing, single-GPU or DDP (static graph), random train windows / even eval windows, gold-58 and a weak-label hold-out scored and saved every eval, checkpoints loadable by `load_checkpoint`. |
+| `mil/plan.py` | `run_plan` / `child_main` — executes a plan of stages in isolated subprocesses (two single-GPU jobs side by side, or one DDP job) after fetching pretrained weights once. `scripts/kaggle_mil_train.py` is the one-file Kaggle launcher. |
+| `mil/submit.py` | `main(SubmitConfig)` — offline submission: 0.5 benchmark written first, MIL arms via `predict_arms`, the residual-gated CoAtNet through its own packaged runtime, fixed-weight rank fusion that drops arms with constant output, schema validation. `scripts/kaggle_submit.py` is the notebook entry point. |
+
 ## Running it
 
 Needs the competition's DICOM data mounted (Kaggle) or populated under `data/` locally —
@@ -74,3 +94,10 @@ grouping, the model's shape wiring (via a stub backbone satisfying the HF `AutoM
 interface), EMA, losses, submission writing, and path resolution. `dicom/sampling.py`
 (actual pixel decoding) and `model/backbone.py` (actual DINOv2 loading) are exercised on
 Kaggle, not by local tests.
+
+For `mil/` (`pip install -e ".[dev,mil]"`): eval window centres are checked against a verbatim
+copy of the public checkpoints' reference implementation on random masks; the head's parameter
+names and its invariance to window order; slot picking, span sampling and stack assembly with
+injected readers; the physical centre crop (skipped without OpenCV); rank fusion; and multi-arm
+orchestration (one decode per recipe per study, failures contained) with stub models. Real DICOM
+decoding and checkpoint loading are exercised on Kaggle.

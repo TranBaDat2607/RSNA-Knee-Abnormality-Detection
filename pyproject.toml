@@ -19,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 viz = ["matplotlib", "seaborn"]
+mil = ["timm", "opencv-python-headless", "scipy"]
 dev = ["pytest"]
 
 [project.scripts]

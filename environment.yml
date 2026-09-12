@@ -1,0 +1,36 @@
+# Conda environment for local dev: the src/rsna_knee package's DICOM-free unit
+# tests, the LLM report-labeling script, and the EDA/baseline notebook.
+#
+# Per CLAUDE.md, actual DICOM decoding / DINOv2 training / full pipeline runs
+# happen on Kaggle (GPU, mounted competition data) -- this env is CPU-only and
+# for local dev/testing (pytest on the 48 DICOM-free tests, scripts/llm_label_gold.py,
+# notebook editing) rather than for running the imaging pipeline end to end.
+#
+# Create:   conda env create -f environment.yml
+# Update:   conda env update -f environment.yml --prune
+# Activate: conda activate rsna-knee
+name: rsna-knee
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  - seaborn
+  - pydicom
+  - python-dotenv
+  - jupyterlab
+  - ipykernel
+  - pytest
+  - pip:
+      # CPU-only wheels -- no local CUDA/GPU needed; training runs on Kaggle.
+      - --extra-index-url https://download.pytorch.org/whl/cpu
+      - torch
+      - transformers
+      - openai
+      - kaggle
+      - pyarrow
+      - -e .[dev,viz,mil]

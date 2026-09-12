@@ -23,14 +23,20 @@ an alternative source of training targets.
 
 ```
 eda/                    EDA + baseline imaging model notebook (narrative, one-off analysis)
-src/rsna_knee/          module-per-concern package version of the same imaging pipeline
+src/rsna_knee/          module-per-concern package version of the same imaging pipeline,
+                         plus mil/ — the CoAtNet 2.5-D attention-MIL pipeline (see below)
 tests/                  unit tests for src/rsna_knee (DICOM-free modules run locally
                          without Kaggle data; see src/rsna_knee/README.md)
 scripts/llm_label_gold.py   LLM report-labeling pipeline
+scripts/kaggle_submit.py    offline Kaggle submission entry (rsna_knee.mil.submit)
+scripts/kaggle_mil_train.py Kaggle launcher for training plans (rsna_knee.mil.train/plan)
 data/                   gold labels, LLM-generated labels, usage logs (train.csv/test.csv
                          and raw DICOM are NOT included — see competition page)
+docs/report.md          2026-09-12 study: why the 0.94 stack works, experiments, path forward
+docs/experiment_ledger.md  every hypothesis/experiment/result/decision rule, in order
 docs/requirements.md    competition task description
 EDA_BASELINE_RESULTS.md summary of the baseline notebook's results
+environment.yml         conda env `rsna-knee` (CPU-only; all GPU work runs on Kaggle)
 ```
 
 `data/train.csv`, `data/test.csv`, and the DICOM directories are gitignored (large /
@@ -42,8 +48,9 @@ page into `data/` (or mounted, on Kaggle) before the imaging pipeline can run.
 ### `src/rsna_knee` package (imaging model)
 
 ```bash
+conda env create -f environment.yml && conda activate rsna-knee   # or: pip install -e ".[dev,viz,mil]"
 pip install -e ".[dev]"     # install package + pytest
-pytest                       # run all tests (48 passing locally; see below for scope)
+pytest                       # run all tests (82 passing locally; see below for scope)
 pytest tests/test_targets.py                    # single file
 pytest tests/test_targets.py::test_gold_positions   # single test
 
@@ -402,3 +409,68 @@ corpus and validated on gold-58 first.
   so per-study cost likely doesn't amortize away at scale. Budget hours, not minutes,
   before assuming a pending submission has failed; the CLI gives no progress signal or
   error detail while `SubmissionStatus.PENDING`.
+
+## CoAtNet MIL pipeline and the "beat 0.94" experiment program (2026-09-12)
+
+Read `docs/report.md` first (synthesis), then `docs/experiment_ledger.md` (every hypothesis,
+pre-registered decision rule, run name and result, in order). Stopped because the Kaggle GPU
+quota ran out.
+
+**State when stopped:** E5b (canonical-orientation A/B, kernel `rsna-knee-e5b-canon-ab`) finished
+and was **rejected**: canonical windows were far worse than raw on a 2,000-study subset (hold-out
+macro −0.097), mostly on findings orientation cannot affect — a training side effect of the
+transform, not a verdict on anatomy (details in the ledger). The E8 LB score (submission `56184308`
+of kernel `rsna-knee-clean-submit` v1: public Raptor v5/v10/v8 equal weight + residual-gated CoAtNet
+0.4, no DINO/Rad chain) was still pending. E6 (full-data new CoAtNet model; with E5b negative, the
+raw-window / best-teacher / new-view branch) was not started — no GPU quota. Nothing above 0.94 has
+been demonstrated yet.
+
+**What the evidence says (details in the report):**
+- The 0.94 public stack rests on the CoAtNet-RMLP-2 @384 2.5-D per-finding attention-MIL family
+  (gold-58 0.912–0.920 per checkpoint vs DINOv2 0.840 / RadImageNet 0.854). Pipeline/label
+  diversity is what adds (residual-gated CoAtNet +0.007 on gold-58); more checkpoints of the same
+  pipeline (e.g. `raptor-knee-widedense` v4) and backbone swaps on the same labels/views do not.
+- The public notebooks' "v5-reverse" arm is a no-op (the attention pool ignores window order) and
+  their 0.939→0.941 gains are LB-probed per-target weights. Gold-58 cannot resolve ±0.01 fusion
+  effects (SE ~0.02): use it as a regression guard, never to tune weights.
+- Five public label tables copy the gold-58 labels verbatim: barun2104 stratified folds,
+  rayanbabur calibrated targets, tasmeemreza refined labels, zaidaliiq1000, yunusgmsoy
+  4-source-merged. Best clean teacher: flight0234 hybrid (0.899 gold agreement); ours 0.855.
+- Relabelling a frozen CoAtNet's head with a better teacher helps Synovitis (+0.067) but the
+  existing family absorbs almost all of it (+0.0016); the pre-registered rule for end-to-end
+  relabelled training failed.
+
+**`src/rsna_knee/mil/` (82 tests total, package shipped to Kaggle as private dataset
+`tranbadat/rsna-knee-code`):** inference engine reproducing the public checkpoints to ≤ 5e-4
+(E4) with one DICOM decode per study shared across recipes; `CORPUS44_336` = the exact recipe of
+the public pre-decoded corpus `dreaddevelopment/knee-raptor-corpus(-ext)` (span **0.15–0.85**, not
+0.06–0.94; mean diff 0.00, E5c); canonical orientation (every series is stored in standard DICOM
+orientation, so right knees are mirror images; side = DICOM tag on only ~50% of studies, patient-x
+geometry does not encode side on untagged sites); corpus trainer + plan runner; offline submission.
+
+**Runtime budget (2×T4, ≈ 1,322 test studies):** public CoAtNet v5+v10+v8 ≤ 106 min (measured
+before shared decode, decode-bound on 4 vCPUs), residual-gated ≈ 64 min (runs its own packaged
+runtime with a pinned OpenCV 4.12 wheel in a subprocess) → ≈ 2.5–3 h of the 9 h limit.
+
+**Kaggle operations learned this session:**
+- Auth: Kaggle CLI 2.x needs a new-style token in `~/.kaggle/access_token`. The legacy
+  `kaggle.json` key can read public kernels/datasets but cannot push kernels, list your own
+  kernels, or use competition endpoints ("Authentication required").
+- Windows: `kaggle datasets create|version -p <absolute path>` crashes building its upload-cache
+  path; `cd` into the parent directory and pass the folder name relatively.
+- Script kernels upload one file: ship the package as a zip of `src/rsna_knee` in the code dataset
+  (Kaggle extracts it server-side) and have the launcher walk `/kaggle/input` for
+  `rsna_knee/__init__.py` (see `scripts/kaggle_submit.py`, `scripts/kaggle_mil_train.py`).
+- GPUs: T4×2 only (P100 unsupported). T4 has no bf16 → fp16 autocast + GradScaler. CoAtNet-2 @384
+  trains at ≈ 13–14 img/s per T4 and needs gradient checkpointing for 24 images; ≈ 29 GB host RAM.
+- A host-RAM OOM shows up only as `process ... terminated with signal SIGKILL`. Run stages in
+  subprocesses, open memmaps lazily (a pickled `np.memmap` copies the whole array into workers), use
+  ≤ 2 non-persistent DataLoader workers, fetch pretrained weights before spawning jobs. Two
+  single-GPU jobs side by side (`CUDA_VISIBLE_DEVICES`) is the efficient A/B pattern; DDP with timm
+  gradient checkpointing needs `static_graph=True`.
+- Monitoring: poll `kaggle kernels status <kernel>`; fetch only logs/receipts with
+  `kaggle kernels output <kernel> -p <dir> --file-pattern '(\.log$|\.json$)'` (logs are JSON
+  streams of stdout/stderr events).
+- The residual-gated arm's runtime needs `test.csv`, `test_series.csv`, `sample_submission.csv`
+  (same study order) and `test_series/`; a stand-in root with symlinked training studies lets it run
+  on gold-58 (E7).

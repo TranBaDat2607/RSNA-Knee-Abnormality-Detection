@@ -310,6 +310,18 @@ already computes), not as a strategy.
 - **Dry run (`rsna-knee-clean-submit` v1, 3-study public test stub):** passed — 3 MIL arms (shared
   decode, 2 GPUs, 46 s) and the residual-gated arm (48 s) all informative, 0 study failures,
   schema-valid `submission.csv`, 1.6 min end to end. Submitted to the competition as the E8 baseline.
+- **Result (submission `56184308`, kernel `rsna-knee-clean-submit` v1; score read 2026-09-17):
+  public LB 0.939.** That is the top pre-registered band (≥ 0.935), so the reading fires as written:
+  **the DINO/RadImageNet chain stays out.** Four arms with fixed equal-ish weights match the public
+  0.939–0.941 notebooks (Δ ≤ ~0.002, i.e. within what the chain *plus* their LB-probed per-target
+  weights buy) while using ≈ 2.5–3 h of the 9 h limit instead of the full chain's budget. It also
+  proves the offline path end to end on the hidden test set (no internet, runtime, schema, 1,322
+  studies). Previous best submission from this repo: 0.910/0.909 (the external ensemble notebook,
+  see `CLAUDE.md`).
+- **Next stage:** yes — 0.939 is the reference baseline. Every later addition (E6 first) is one
+  submission compared against it, and anything that does not clear 0.939 does not enter the stack.
+  Corollary for the remaining GPU budget: ~6 h of the 9 h limit is free for new arms, and the lever
+  is a genuinely different pipeline, not the chain.
 
 ### E7 — engineering check of the residual-gated CoAtNet arm  *(done)*
 

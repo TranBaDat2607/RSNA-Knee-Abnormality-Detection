@@ -46,8 +46,13 @@ corpus (dreaddevelopment), the residual-gated CoAtNet (mattiaangeli), and public
 | DINOv2 slot model (public 20-member OOF) | 0.840 | — |
 | Single public CoAtNet checkpoint (v5 / v10 / v8) | 0.920 / 0.917 / 0.912 | — |
 | Residual-gated CoAtNet (e4/e6/e8) | 0.909 | — |
-| **Clean pipeline: v5 + v10 + v8 (equal) + residual-gated (0.4)** | **0.930** | *pending (E8)* |
+| **Clean pipeline: v5 + v10 + v8 (equal) + residual-gated (0.4)** | **0.930** | **0.939** (E8) |
 | Public 0.94 notebooks (adds DINO/RadImageNet chain, LB-probed weights) | — | 0.939–0.941 |
+
+The clean pipeline matches the public 0.94 notebooks (0.939 vs 0.939–0.941) with four arms, fixed
+weights and ≈ 2.5–3 h of the 9 h runtime limit — no DINO/RadImageNet chain and no LB-probed per-target
+weights. Per E8's pre-registered rule the chain stays out, and 0.939 is the reference score every
+later change is measured against.
 
 Gold-58 numbers are clean hold-out predictions (every checkpoint was trained without those studies).
 Gold-58 has a macro-AUC standard error of ~0.02, so it guards against regressions rather than ranking

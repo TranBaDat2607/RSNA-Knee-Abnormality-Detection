@@ -419,11 +419,17 @@ quota ran out.
 **State when stopped:** E5b (canonical-orientation A/B, kernel `rsna-knee-e5b-canon-ab`) finished
 and was **rejected**: canonical windows were far worse than raw on a 2,000-study subset (hold-out
 macro −0.097), mostly on findings orientation cannot affect — a training side effect of the
-transform, not a verdict on anatomy (details in the ledger). The E8 LB score (submission `56184308`
-of kernel `rsna-knee-clean-submit` v1: public Raptor v5/v10/v8 equal weight + residual-gated CoAtNet
-0.4, no DINO/Rad chain) was still pending. E6 (full-data new CoAtNet model; with E5b negative, the
-raw-window / best-teacher / new-view branch) was not started — no GPU quota. Nothing above 0.94 has
-been demonstrated yet.
+transform, not a verdict on anatomy (details in the ledger). E6 (full-data new CoAtNet model; with
+E5b negative, the raw-window / best-teacher / new-view branch) was not started — no GPU quota.
+
+**E8 scored 0.939 on the public LB** (read 2026-09-17; submission `56184308` of kernel
+`rsna-knee-clean-submit` v1: public Raptor v5/v10/v8 equal weight + residual-gated CoAtNet 0.4, no
+DINO/Rad chain). This is the repo's best submission (previous: 0.910/0.909 from the external ensemble
+notebook below) and it is level with the public 0.939–0.941 chain notebooks while using ≈ 2.5–3 h of
+the 9 h limit. Per E8's pre-registered rule (≥ 0.935) **the DINO/Rad chain stays out** — it plus the
+public notebooks' LB-probed per-target weights are worth ≤ ~0.002 over this family. 0.939 is now the
+reference baseline: every later addition is one submission compared against it. Nothing above 0.94
+has been demonstrated yet.
 
 **What the evidence says (details in the report):**
 - The 0.94 public stack rests on the CoAtNet-RMLP-2 @384 2.5-D per-finding attention-MIL family

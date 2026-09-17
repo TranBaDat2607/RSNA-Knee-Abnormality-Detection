@@ -2,7 +2,8 @@
 
 *Session of 2026-09-12. Full per-experiment detail, pre-registered rules and raw numbers are in
 [`experiment_ledger.md`](experiment_ledger.md); this report is the synthesis. Stopped because the
-Kaggle GPU quota ran out — see "Status and what is left".*
+Kaggle GPU quota ran out — see "Status and what is left". **Updated 2026-09-17: E8's public LB score
+came back at 0.939** and is filled in below.*
 
 ## TL;DR
 
@@ -28,9 +29,12 @@ Kaggle GPU quota ran out — see "Status and what is left".*
   public notebooks' predictions exactly and decodes each study once for all arms; the exact recipe of
   the public training corpus; a corpus trainer (fp16, grad-checkpointing, single-GPU A/B pairs or DDP)
   proven on 2×T4; and an offline submission pipeline. 82 unit tests.
-- **Not yet shown: a score above 0.94.** The clean baseline (public CoAtNet family + residual-gated,
-  no DINO/Rad chain) is scored on the LB as E8 — *result pending at time of writing*. The new-model
-  stage (E6) was not started because the GPU quota ran out.
+- **The clean baseline scores 0.939 on the public LB (E8, submission `56184308`)** — level with the
+  0.939–0.941 public notebooks while dropping the entire DINO/RadImageNet chain and their LB-probed
+  per-target weights, and using ≈ 2.5–3 h of the 9 h limit. Per the pre-registered rule (≥ 0.935),
+  **the chain stays out**; 0.939 is now the reference every later addition is measured against.
+- **Not yet shown: a score above 0.94.** The new-model stage (E6) — the one lever with evidence
+  behind it — was not started because the GPU quota ran out.
 
 ## Why the 0.94 stack works
 
@@ -58,7 +62,7 @@ Lateral OA 0.86, Lateral Meniscus 0.88 — while the medial counterparts sit at 
 | E5a | orientation varies; knee side is recoverable | headers of 20,792 slot series | orientation 100% standard (right knees are always mirror images); side: tag on 50%, geometry agrees 0.924 but is unreliable on untagged sites | canonicalisation = mirror right knees; side noisy for ~half | gate passed → E5b |
 | E5c | the public corpus has a recoverable exact recipe | 640 preprocessing variants × 29 slots | span 15–85%, per-series 2–98th pct, 140 mm, area resize → mean diff 0.00 | corpus-trained models can be served from DICOM exactly | — |
 | E5b | one canonical anatomical orientation lifts the lateral findings | 2,000 studies × 3 epochs, CoAtNet-2, raw vs canonical, same teacher | canonical − raw: hold-out macro −0.097 (CI [−0.114, −0.080]); lateral pair −0.021 hold-out / −0.070 gold; side-agnostic findings −0.12 / −0.15 | rejected (pre-registered "clearly negative"); damage pattern points to a training side effect, not anatomy | no |
-| E8 | clean pipeline without the DINO/Rad chain stays near the public stack | public LB | *pending at time of writing* | *pending* | — |
+| E8 | clean pipeline without the DINO/Rad chain stays near the public stack | public LB | **0.939** (submission `56184308`) vs 0.939–0.941 for the public chain notebooks | top pre-registered band (≥ 0.935) → chain stays out; 0.939 is the reference baseline | yes → E6 measured against it |
 
 Engineering checks (not hypotheses): **E3 smoke** (v1 host-OOM SIGKILL → fixed; v2 passed on 2×T4),
 **E4** (repo inference engine reproduces the public predictions to ≤ 5e-4, same gold-58 AUCs),
@@ -90,9 +94,11 @@ one or two new models.
 
 ## The recommended path past 0.94
 
-1. **Base:** the clean CoAtNet pipeline (public v5 / v10 / v8 at equal weight + residual-gated at 0.4).
-   Gold-58 0.930, ~3 h, no LB-fitted weights. Its LB score (E8) decides whether the DINO/Rad chain is
-   worth adding back (≥ 0.935: leave it out; 0.925–0.935: add once at the public 0.4 weight).
+1. **Base — settled:** the clean CoAtNet pipeline (public v5 / v10 / v8 at equal weight +
+   residual-gated at 0.4). Gold-58 0.930, **public LB 0.939** (E8), ~3 h, no LB-fitted weights. The
+   pre-registered reading fired in the top band, so the DINO/Rad chain does **not** come back: it and
+   the LB-probed per-target weights together are worth ≤ ~0.002 over this family, at several hours of
+   runtime. That leaves ≈ 6 h of the 9 h limit for new arms.
 2. **Main lever:** one new strong CoAtNet-class model whose *pipeline* differs from the Raptor family —
    the only kind of addition that has measurably helped. Train it on the full public corpus with the
    validated trainer (≈ 5–7 h on 2×T4, one session), serve it with the exact corpus recipe, and add it
@@ -107,8 +113,8 @@ one or two new models.
 
 ## Status and what is left (quota exhausted)
 
-- **E8** LB score was still pending when the session was stopped; fill it in above, in the ledger and
-  in `README.md`.
+- **E8** scored **0.939** on the public LB (read 2026-09-17, submission `56184308`) — recorded above,
+  in the ledger and in `README.md`. Decision taken: no DINO/Rad chain.
 - **E6** (the full-data new model) was not started: it needs GPU quota. With E5b negative, the
   pre-registered branch is the view-diversity model (raw windows, best teacher, subset-first for any
   new view).

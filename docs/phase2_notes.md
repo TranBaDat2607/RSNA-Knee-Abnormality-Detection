@@ -234,3 +234,12 @@ Submitted as `56799230`; LB pending.
 **R5t fold 0** (report labels only): best val vs teach4 0.8718 (ep 15) vs R3 fold 0 0.8805 — the model trained
 directly on teach4 scores *lower against teach4* than the one trained on the OOF-mixed R2 targets; gold-58
 0.895 vs 0.891. Folds 1–4 running (`r5ta` done, `r5tb`, `r5tc`).
+
+**R4 solo LB: 0.917** (`56799230`) vs R3 0.920. Pre-registered rule: < 0.918 → heavy OOF mixing does not help
+our LB (−0.003 is at noise level; read it as "no gain"). **Stop pseudo-label rounds.**
+
+**Where this leaves us.** Every model we have built from the public 44-slice corpus lands at LB 0.917–0.920,
+regardless of resolution, length, backbone or label mix; the public CoAtNets trained on the same corpus sit at
+≈ 0.924 each. Participants report single models at 0.949–0.954 from their own preprocessing. The remaining
+untested common factor is the corpus preprocessing itself (slot choice keyed on plane × FS only — which merges
+T1/PD/T2 contrasts — the 15–85 % span, per-series 2–98 % window, centre 140 mm crop).

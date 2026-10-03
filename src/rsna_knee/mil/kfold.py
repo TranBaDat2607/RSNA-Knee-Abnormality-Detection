@@ -191,13 +191,18 @@ def train_fold(a: argparse.Namespace, fold: int, corpus, folds: pd.Series, targe
         if (ep + 1) % a.eval_every == 0 or ep + 1 == a.epochs:
             live = {k: v.detach().clone() for k, v in model.state_dict().items()}
             ema.copy_to(model)
-            pv = predict(model, va_ds, a.res, device, a.workers)
-            rec["val_ref_macro"], rec["val_ref_per"] = macro_auc(ref_va.values[ok], pv[ok])
-            if rec["val_ref_macro"] > best:
-                best = rec["val_ref_macro"]
+            if va_ids:
+                pv = predict(model, va_ds, a.res, device, a.workers)
+                rec["val_ref_macro"], rec["val_ref_per"] = macro_auc(ref_va.values[ok], pv[ok])
+                score = rec["val_ref_macro"]
+            else:  # fold -1: fit on every pool study, no validation -> keep the latest evaluated epoch
+                pv, score = None, float(ep)
+            if score > best:
+                best = score
                 rec["best"] = True
-                pd.DataFrame(pv, columns=TARGETS).assign(StudyInstanceUID=va_ids)[["StudyInstanceUID", *TARGETS]] \
-                    .to_csv(os.path.join(out_dir, "oof.csv"), index=False)
+                if pv is not None:
+                    pd.DataFrame(pv, columns=TARGETS).assign(StudyInstanceUID=va_ids)[["StudyInstanceUID", *TARGETS]] \
+                        .to_csv(os.path.join(out_dir, "oof.csv"), index=False)
                 pg = predict(model, gold_ds, a.res, device, a.workers)
                 np.save(os.path.join(out_dir, "gold.npy"), pg)
                 rec["gold_macro"], rec["gold_per"] = macro_auc(gold.values, pg)
@@ -257,7 +262,7 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--cache", type=int, default=256, help="pixel size of the corpus cache to read")
     p.add_argument("--targets", default="targets_r1.csv", help="soft training targets (file under /kaggle/input)")
     p.add_argument("--reference", default="teach4.csv", help="text-only table the validation fold is scored on")
-    p.add_argument("--folds", default="0,1,2,3,4")
+    p.add_argument("--folds", default="0,1,2,3,4", help="comma list; -1 = one model on every pool study (no OOF)")
     p.add_argument("--n_folds", type=int, default=5)
     p.add_argument("--fold_seed", type=int, default=2026)
     p.add_argument("--tag", default="")

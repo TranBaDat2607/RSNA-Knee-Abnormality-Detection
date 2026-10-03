@@ -319,3 +319,9 @@ R5t (teach4 only) 0.922 > R3 (R2 mix) 0.920 > R4 (heavy OOF) 0.917; gold-58 rank
 the next production run uses `teach4.csv`. Note the target tables' own gold-58 (teach4 0.896, R2 0.923,
 R4 0.913) does *not* predict the trained model's LB — the model trained on the "worse" table is best.
 Gold-58 of the *trained model* does track the LB at this 0.007–0.014 scale.
+
+**R5t full-data models** (`rsna-knee-r5tfull`, tag `r5tfull_nano336`): `kfold --folds -1` (new on the GPU
+trainer: train on every pool study, no OOF, keep the last epoch — every R3/R4 fold peaked at the last or
+next-to-last epoch). Two seeds (42, 7), R5t recipe (teach4, nano 336, 18 ep). Each fold model saw 80 % of the
+studies; these see 100 %. Planned use: R5t's own leg = rank-mean of {5 fold models, 2 full models}, checked on
+gold-58 before any LB read.

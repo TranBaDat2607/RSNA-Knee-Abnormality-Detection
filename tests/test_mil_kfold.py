@@ -200,3 +200,24 @@ def test_slot_aware_kfold_run_and_fleet_parity(tmp_path):
     expected = predict(model, SlotWindows(_Cache(), [0], np.zeros((1, 12), np.float32), 6, False, 0), 16,
                        torch.device("cpu"), workers=0)
     assert not failures and np.allclose(probs[0], expected, atol=1e-5)
+
+
+def test_full_data_fold_minus_one_trains_on_every_pool_study(tmp_path):
+    corpus = _fake_corpus(tmp_path)
+    build_cache(corpus, str(tmp_path), 8, log=lambda m: None)
+    ids = list(corpus.ids)
+    labels = pd.DataFrame(np.random.default_rng(0).integers(0, 2, (len(ids), 12)).astype(float), columns=TARGETS, index=ids)
+    labels.iloc[:, 0] = [0, 1] * (len(ids) // 2)
+    train = labels.copy()
+    train.iloc[4:] = np.nan
+    train.insert(0, "Report", [f"report {i % 9}" for i in range(len(ids))])
+    train.rename_axis("StudyInstanceUID").reset_index().to_csv(tmp_path / "train.csv", index=False)
+    labels.clip(0.1, 0.9).rename_axis("StudyInstanceUID").reset_index().to_csv(tmp_path / "t.csv", index=False)
+    a = parse_args(["--arch", "resnet18", "--scratch", "--cache", "8", "--res", "16", "--targets", "t.csv",
+                    "--reference", "t.csv", "--folds", "-1", "--k", "4", "--k_eval", "6", "--epochs", "2",
+                    "--bs", "2", "--workers", "0", "--eval_every", "1", "--tag", "full", "--out", str(tmp_path / "out")])
+    run(0, 1, a, find_file=lambda f: str(tmp_path / f))
+    d = tmp_path / "out" / "full" / "fold-1"
+    assert (d / "model.pt").exists() and (d / "gold.npy").exists() and not (d / "oof.csv").exists()
+    model, _, meta = load_checkpoint(str(d / "model.pt"))
+    assert meta["epoch"] == 1 and meta["fold"] == -1  # the last epoch is kept

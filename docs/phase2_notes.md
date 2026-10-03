@@ -300,3 +300,15 @@ Gold-58 falls monotonically as more OOF is mixed in, and the LB moves the same w
 make the model fit the *report* labels better and the *expert* labels worse — the opposite of what forum
 posts report. R5t's solo LB (`rsna-knee-ours-solo`, tag `r5t_nano336`) is the test; if ≥ 0.921 the next
 production run uses teach4-only targets.
+
+**`ab6` result (fold 0, vs `gab_stack`, paired bootstrap):**
+
+| Arm | Val | Gold-58 | Δ val (90 % CI) |
+|---|---|---|---|
+| `gab_stack_s7` (same as baseline, seed 7) | 0.8735 | 0.8937 | −0.0019 [−0.0039, +0.0002] |
+| `gab_ctr` (tissue-centred crop) | 0.8726 | 0.8957 | −0.0027 [−0.0044, −0.0007] |
+
+**Training noise ≈ 0.002 on final val** (larger mid-training: 0.006 at epoch 5). The tissue-centred crop is at
+that floor → **rejected** (no gain). Re-read of earlier A/Bs with this floor: 336 px (+0.0025) is borderline —
+kept for its MCL / lateral-meniscus gains; wide span (−0.0055) and ResNet-50 (−0.024) remain real losses;
+slot-aware, ConvNeXt-tiny, CoAtNet-1 are noise.

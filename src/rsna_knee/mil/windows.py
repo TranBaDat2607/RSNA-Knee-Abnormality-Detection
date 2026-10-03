@@ -50,6 +50,51 @@ def triplets(volume: np.ndarray, centres: np.ndarray) -> np.ndarray:
     return np.stack([volume[centres - 1], volume[centres], volume[centres + 1]], axis=1)
 
 
+def slot_of(centres: np.ndarray, bounds: tuple[int, ...]) -> np.ndarray:
+    """Slot index of each centre for a stack laid out as consecutive slots (``bounds`` = cumulative
+    slice counts starting at 0, e.g. the corpus' ``(0, 12, 22, 30, 36, 44)``)."""
+    return np.searchsorted(np.asarray(bounds), np.asarray(centres), side="right") - 1
+
+
+def _slot_candidates(mask: np.ndarray) -> list[int]:
+    valid = np.flatnonzero(np.asarray(mask) > 0).tolist()
+    return valid or [len(mask) // 2]
+
+
+def slot_eval_centres(mask: np.ndarray, k: int) -> np.ndarray:
+    """``k`` centres spread evenly over every filled slice (any slot, edges included)."""
+    cand = _slot_candidates(mask)
+    return np.array([cand[i] for i in np.linspace(0, len(cand) - 1, k).round().astype(int)])
+
+
+def slot_train_centres(mask: np.ndarray, k: int, rng: random.Random) -> np.ndarray:
+    """``k`` random filled slices, cycling through all of them before repeating one."""
+    cand, pool = _slot_candidates(mask), []
+    while len(pool) < k:
+        cycle = list(cand)
+        rng.shuffle(cycle)
+        pool += cycle
+    return np.array(pool[:k])
+
+
+def slot_triplets(volume: np.ndarray, mask: np.ndarray, centres: np.ndarray,
+                  bounds: tuple[int, ...]) -> np.ndarray:
+    """Like :func:`triplets`, but a neighbour outside the centre's slot (another series) or outside
+    the filled slices is replaced by the centre slice itself, so a window never mixes two series."""
+    centres = np.asarray(centres)
+    slot = slot_of(centres, bounds)
+    lo, hi = np.asarray(bounds)[slot], np.asarray(bounds)[slot + 1] - 1
+    filled = np.asarray(mask) > 0
+
+    def neighbour(n: np.ndarray, inside: np.ndarray) -> np.ndarray:
+        n = np.where(inside, n, centres)
+        return np.where(filled[n], n, centres)
+
+    below = neighbour(centres - 1, centres - 1 >= lo)
+    above = neighbour(centres + 1, centres + 1 <= hi)
+    return np.stack([volume[below], volume[centres], volume[above]], axis=1)
+
+
 def to_model_input(windows_u8: torch.Tensor, res: int, gain: torch.Tensor | None = None) -> torch.Tensor:
     """uint8 windows (any leading dims, then 3, H, W) -> ImageNet-normalised float at ``res``.
 

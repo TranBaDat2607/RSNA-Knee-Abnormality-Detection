@@ -1,0 +1,4 @@
+{"id": "tranbadat/rsna-knee-cache-wide256", "title": "rsna-knee-cache-wide256", "code_file": "rsna-knee-cache-wide256.py",
+ "language": "python", "kernel_type": "script", "is_private": true, "enable_gpu": false, "enable_tpu": false,
+ "enable_internet": false, "dataset_sources": ["tranbadat/rsna-knee-code"], "kernel_sources": [],
+ "competition_sources": ["rsna-knee-abnormality-detection"], "model_sources": []}

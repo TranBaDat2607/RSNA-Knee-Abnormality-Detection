@@ -33,7 +33,12 @@ def build_backbone(arch: str = DEFAULT_ARCH, pretrained: bool = False) -> nn.Mod
 
 
 class MILClassifier(nn.Module):
-    def __init__(self, backbone: nn.Module, feat_dim: int, n_out: int = 12, drop: float = 0.2):
+    """``n_slots > 0`` adds a learned embedding per slot (plane x sequence) to each window's
+    features, so the pool knows which series a window came from; it starts at zero, i.e. as the
+    slot-blind model. Callers then pass ``slots`` (``(B, K)`` slot index per window) to ``head``."""
+
+    def __init__(self, backbone: nn.Module, feat_dim: int, n_out: int = 12, drop: float = 0.2,
+                 n_slots: int = 0):
         super().__init__()
         self.backbone = backbone
         self.norm = nn.LayerNorm(feat_dim)
@@ -42,6 +47,8 @@ class MILClassifier(nn.Module):
         self.clsW = nn.Parameter(torch.zeros(n_out, feat_dim))
         self.clsb = nn.Parameter(torch.zeros(n_out))
         nn.init.trunc_normal_(self.clsW, std=0.02)
+        if n_slots:
+            self.slot_emb = nn.Parameter(torch.zeros(n_slots, feat_dim))
 
     def encode(self, x: torch.Tensor, chunk: int = 0) -> torch.Tensor:
         """``(B, K, 3, H, W)`` -> ``(B, K, F)``; ``chunk`` bounds images per backbone call."""
@@ -53,14 +60,16 @@ class MILClassifier(nn.Module):
             feats = self.backbone(flat)
         return feats.view(b, k, -1)
 
-    def head(self, feats: torch.Tensor) -> torch.Tensor:
+    def head(self, feats: torch.Tensor, slots: torch.Tensor | None = None) -> torch.Tensor:
         h = self.norm(feats)
+        if hasattr(self, "slot_emb"):
+            h = h + self.slot_emb[slots]
         att = torch.softmax(self.att(h), dim=1)  # (B, K, n_out): one distribution per finding
         pooled = torch.einsum("bkn,bkf->bnf", att, h)
         return (pooled * self.clsW).sum(-1) + self.clsb
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.head(self.encode(x))
+    def forward(self, x: torch.Tensor, slots: torch.Tensor | None = None) -> torch.Tensor:
+        return self.head(self.encode(x), slots)
 
 
 def load_checkpoint(path: str | Path, device: torch.device | str = "cpu"
@@ -72,7 +81,7 @@ def load_checkpoint(path: str | Path, device: torch.device | str = "cpu"
     """
     ck = torch.load(path, map_location="cpu", weights_only=False)
     backbone = build_backbone(ck.get("arch", DEFAULT_ARCH))
-    model = MILClassifier(backbone, backbone.num_features)
+    model = MILClassifier(backbone, backbone.num_features, n_slots=int(ck.get("n_slots", 0)))
     model.load_state_dict(ck["model"], strict=True)
     meta = {k: v for k, v in ck.items() if k != "model" and not isinstance(v, torch.Tensor)}
     return model.eval().to(device), int(ck.get("res", 384)), meta

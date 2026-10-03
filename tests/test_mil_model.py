@@ -54,3 +54,21 @@ def test_chunked_encoding_matches_a_single_backbone_call():
 def test_public_arm_list_has_no_duplicate_checkpoint_passes():
     files = [a.checkpoint for a in PUBLIC_RAPTOR_ARMS]
     assert len(files) == len(set(files))
+
+
+def test_slot_embedding_starts_neutral():
+    import torch
+
+    from rsna_knee.mil.model import MILClassifier, load_checkpoint
+
+    torch.manual_seed(0)
+    plain = MILClassifier(_StubBackbone(), _StubBackbone.num_features).eval()
+    slotted = MILClassifier(_StubBackbone(), _StubBackbone.num_features, n_slots=5).eval()
+    slotted.load_state_dict(plain.state_dict(), strict=False)
+    feats = torch.randn(2, 6, _StubBackbone.num_features)
+    slots = torch.tensor([[0, 1, 2, 3, 4, 4]] * 2)
+    assert torch.allclose(plain.head(feats), slotted.head(feats, slots))  # zero init = slot-blind
+    with torch.no_grad():
+        slotted.slot_emb[2] += 1.0
+    assert not torch.allclose(plain.head(feats), slotted.head(feats, slots))
+    assert "slot_emb" in dict(slotted.named_parameters())

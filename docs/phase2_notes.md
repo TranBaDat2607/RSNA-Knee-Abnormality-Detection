@@ -312,3 +312,10 @@ production run uses teach4-only targets.
 that floor → **rejected** (no gain). Re-read of earlier A/Bs with this floor: 336 px (+0.0025) is borderline —
 kept for its MCL / lateral-meniscus gains; wide span (−0.0055) and ResNet-50 (−0.024) remain real losses;
 slot-aware, ConvNeXt-tiny, CoAtNet-1 are noise.
+
+**R5t solo LB: 0.922** (`56803647`) — best own model. Label axis at fixed image recipe:
+R5t (teach4 only) 0.922 > R3 (R2 mix) 0.920 > R4 (heavy OOF) 0.917; gold-58 ranks them identically
+(0.905 > 0.898 > 0.891). **OOF pseudo-labelling hurts our LB; train on report labels.** Rule fired (≥ 0.921):
+the next production run uses `teach4.csv`. Note the target tables' own gold-58 (teach4 0.896, R2 0.923,
+R4 0.913) does *not* predict the trained model's LB — the model trained on the "worse" table is best.
+Gold-58 of the *trained model* does track the LB at this 0.007–0.014 scale.

@@ -138,6 +138,8 @@ def train_fold(a, fold, corpus, folds, targets, reference, gold, log) -> dict:
 
     torch.manual_seed(a.seed + fold)
     backbone = build_backbone(a.arch, pretrained=not a.scratch)
+    if a.slot_aware and corpus.masks.shape[1] != SLOT_BOUNDS[-1]:
+        raise ValueError(f"--slot_aware needs the {SLOT_BOUNDS[-1]}-slice corpus layout, cache has {corpus.masks.shape[1]}")
     n_slots = len(SLOT_BOUNDS) - 1 if a.slot_aware else 0
     model = MILClassifier(backbone, backbone.num_features, drop=a.drop, n_slots=n_slots).to(dev)
     head = [p for n, p in model.named_parameters() if not n.startswith("backbone.")]

@@ -253,3 +253,22 @@ T1/PD/T2), and studies average 5.5 series, so the corpus' 5 slots already cover 
 
 **Direction (2026-10-03, owner's decision):** no team merge — the solution stays independent. Public ideas and
 techniques may be used; effort goes into our own preprocessing, models and ensemble. (Outreach draft removed.)
+
+### Per-finding gold-58 across runs → the maxspan hypothesis (2026-10-03)
+
+| | teach4 labels | R1 (LB .917) | R3 (.920) | R4 (.917) | Raptor v5 |
+|---|---|---|---|---|---|
+| MCL | 0.971 | 0.902 | 0.889 | 0.884 | **0.982** |
+| PF OA | 0.898 | 0.830 | 0.817 | 0.819 | 0.848 |
+| Effusion | 0.880 | **0.985** | 0.939 | 0.914 | 0.983 |
+| macro | 0.896 | 0.905 | 0.898 | 0.891 | **0.920** |
+
+Our models fall *below their own report labels* on fine structures (MCL −0.08, PF OA −0.08, ACL, lateral
+OA/meniscus) and beat them on diffuse findings; effusion degrades monotonically as more OOF is mixed in.
+Raptor v5 differs from our input in slices: 64 over 2–98 % (coronal 20 slices) vs the corpus' 44 over 15–85 %
+(coronal 14) — the same slice density, wider coverage. WIDE44 (44 slices over 4–96 %, i.e. sparser) lost
+−0.0055, which does not test this.
+
+**A/B `gab_max16` / `gab_max24`** (`rsna-knee-gpu-ab5`, after `rsna-knee-cache-maxspan256` builds the 64-slice
+cache from DICOM): nano 256 px stack windows, 12 epochs, `targets_r2`, k_eval 60, k = 16 and 24, vs `gab_stack`
+(0.8753 val, gold 0.8955). Read: val vs teach4 and gold-58 MCL / PF OA / macro.

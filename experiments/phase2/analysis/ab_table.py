@@ -22,7 +22,7 @@ for tag, (o, g) in runs.items():
     v = per(y, o.reindex(ids)); gg = per((gold > 0.5).astype(int), g)
     rows[tag] = {**{t: v[t] for t in T}, 'VAL': np.mean(list(v.values())), 'GOLD': np.mean(list(gg.values())), 'gold_MCL': gg['MCL'], 'gold_LatMen': gg['Lateral Meniscus']}
 print(pd.DataFrame(rows).round(4).to_string())
-base = 'gab_slot' if 'gab_slot' in runs else list(runs)[0]
+base = os.environ.get('BASE', 'gab_slot') if os.environ.get('BASE', 'gab_slot') in runs else list(runs)[0]
 rng = np.random.default_rng(0); n = len(ids)
 for tag in runs:
     if tag == base: continue

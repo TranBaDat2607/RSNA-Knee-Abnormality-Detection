@@ -286,3 +286,17 @@ the medial edge on coronal slices (~50 mm from the knee centre), so a 20 mm offs
 Cache `rsna-knee-cache-ctr256`; A/B `rsna-knee-gpu-ab6`: `gab_ctr` (nano 256 stack, 12 ep, `targets_r2`) vs
 `gab_stack` (0.8753), plus `gab_stack_s7` = the baseline with seed 7 to measure training noise (the bootstrap
 CIs so far cover study sampling only).
+
+**R5t trained (report labels only):** OOF vs teach4 **0.8679** (lower), gold-58 fold-mean **0.9054** (higher;
+best epochs 13–15). Effusion 0.980, lateral meniscus 0.873, synovitis 0.799 recover.
+
+| Run | targets | OOF vs teach4 | gold-58 | solo LB |
+|---|---|---|---|---|
+| R5t | teach4 only | 0.868 | **0.905** | pending |
+| R3 | R2 mix (≈ 65 % OOF) | 0.880 | 0.898 | 0.920 |
+| R4 | 70 % OOF (mostly R3) | 0.882 | 0.891 | 0.917 |
+
+Gold-58 falls monotonically as more OOF is mixed in, and the LB moves the same way on R3→R4. OOF pseudo-labels
+make the model fit the *report* labels better and the *expert* labels worse — the opposite of what forum
+posts report. R5t's solo LB (`rsna-knee-ours-solo`, tag `r5t_nano336`) is the test; if ≥ 0.921 the next
+production run uses teach4-only targets.

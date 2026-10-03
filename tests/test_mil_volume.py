@@ -81,3 +81,20 @@ def test_crop_resize_takes_a_physical_centre_crop():
     assert out.shape == (10, 10) and np.allclose(out, 1.0)
     wide = crop_resize(a, spacing=0.5, crop_mm=200.0, img=10)  # crop bounded by the image
     assert wide.shape == (10, 10) and 0.0 < wide.mean() < 1.0
+
+
+def test_tissue_centred_crop_follows_an_off_centre_knee():
+    import numpy as np
+
+    from rsna_knee.mil.volume import crop_resize, tissue_centre
+
+    a = np.zeros((100, 100), np.float32)
+    a[10:40, 60:90] = 1.0  # "knee" in the upper-right corner
+    c = tissue_centre(a)
+    assert abs(c[0] - 24.5) < 1 and abs(c[1] - 74.5) < 1
+    centred = crop_resize(a, spacing=1.0, crop_mm=40.0, img=40)
+    shifted = crop_resize(a, spacing=1.0, crop_mm=40.0, img=40, centre=c)
+    assert shifted.sum() > 3 * centred.sum()  # the tissue-centred crop keeps the knee
+    edge = crop_resize(a, spacing=1.0, crop_mm=40.0, img=40, centre=(0.0, 99.0))
+    assert edge.shape == (40, 40)  # a centre near the border is clamped inside the image
+    assert tissue_centre(np.zeros((10, 10), np.float32)) is None

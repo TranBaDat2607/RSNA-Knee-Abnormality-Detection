@@ -272,3 +272,17 @@ Raptor v5 differs from our input in slices: 64 over 2–98 % (coronal 20 slices)
 **A/B `gab_max16` / `gab_max24`** (`rsna-knee-gpu-ab5`, after `rsna-knee-cache-maxspan256` builds the 64-slice
 cache from DICOM): nano 256 px stack windows, 12 epochs, `targets_r2`, k_eval 60, k = 16 and 24, vs `gab_stack`
 (0.8753 val, gold 0.8955). Read: val vs teach4 and gold-58 MCL / PF OA / macro.
+
+### Crop diagnostic → tissue-centred crop (2026-10-03)
+
+`rsna-knee-crop-diag` (CPU, 400 training studies, middle slice of every slot series, Otsu tissue mask;
+`experiments/phase2/crop_diag.csv`): field of view median 160 mm; tissue centroid offset from the image centre
+median 13 mm sagittal / 9 mm coronal / 8 mm axial (p90 26 / 21 / 18 mm); tissue outside the centred 140 mm crop
+median 12 % sagittal / 10 % coronal (p90 22 % / 20 %); 67 % of series lose > 5 % of their tissue. The MCL sits at
+the medial edge on coronal slices (~50 mm from the knee centre), so a 20 mm offset puts it at the crop border.
+
+`CORPUS44C_256` = the corpus layout with the crop centred on each series' tissue centroid (middle slice;
+`volume.tissue_centre`, clamped inside the image); test-time decode uses the same `build_volume`.
+Cache `rsna-knee-cache-ctr256`; A/B `rsna-knee-gpu-ab6`: `gab_ctr` (nano 256 stack, 12 ep, `targets_r2`) vs
+`gab_stack` (0.8753), plus `gab_stack_s7` = the baseline with seed 7 to measure training noise (the bootstrap
+CIs so far cover study sampling only).

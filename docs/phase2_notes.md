@@ -243,3 +243,10 @@ regardless of resolution, length, backbone or label mix; the public CoAtNets tra
 ≈ 0.924 each. Participants report single models at 0.949–0.954 from their own preprocessing. The remaining
 untested common factor is the corpus preprocessing itself (slot choice keyed on plane × FS only — which merges
 T1/PD/T2 contrasts — the 15–85 % span, per-series 2–98 % window, centre 140 mm crop).
+
+**Label calibration from gold-58 — rejected (local, `analysis/calib_loo.py`).** Idea: experts mark findings the
+reports omit (gold Fracture 31 % vs 7 % of reports), so learn P(expert label | all 12 report labels) per
+finding. Leave-one-out on gold-58 with a ridge logistic: macro AUC **0.835 vs 0.896** for the raw teach4 column
+(C = 0.05; worse at weaker regularisation). 58 studies cannot support a cross-finding mapping; the matching
+report label stays the best single signal. Also checked: `train_series.csv` only carries plane and FS (no
+T1/PD/T2), and studies average 5.5 series, so the corpus' 5 slots already cover most of each study.

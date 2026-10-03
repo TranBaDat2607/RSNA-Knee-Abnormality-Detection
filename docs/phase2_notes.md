@@ -250,3 +250,6 @@ finding. Leave-one-out on gold-58 with a ridge logistic: macro AUC **0.835 vs 0.
 (C = 0.05; worse at weaker regularisation). 58 studies cannot support a cross-finding mapping; the matching
 report label stays the best single signal. Also checked: `train_series.csv` only carries plane and FS (no
 T1/PD/T2), and studies average 5.5 series, so the corpus' 5 slots already cover most of each study.
+
+**Direction (2026-10-03, owner's decision):** no team merge — the solution stays independent. Public ideas and
+techniques may be used; effort goes into our own preprocessing, models and ensemble. (Outreach draft removed.)

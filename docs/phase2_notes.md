@@ -226,3 +226,11 @@ Fold 4 (`r4c`) running; solo kernel staged (`rsna-knee-ours-solo` next version, 
 **R5t — control: report labels only** (`tranbadat/rsna-knee-r5ta/b/c`, tag `r5t_nano336`): the R3 recipe
 trained on `teach4.csv` (no OOF mixing). Gives the label axis three LB points at fixed image recipe —
 0 % OOF (R5t), R2 mix (R3, 0.920), heavy mix (R4) — i.e. whether OOF pseudo-labelling moves our LB at all.
+
+**R4 trained** (5 folds, all best at epoch 17): OOF vs teach4 0.8817 (inflated — targets contain R3's OOF),
+gold-58 fold-mean 0.8910 (R3 0.8977, noise). Solo kernel `rsna-knee-ours-solo` v3: 5 checkpoints, 0 failures.
+Submitted as `56799230`; LB pending.
+
+**R5t fold 0** (report labels only): best val vs teach4 0.8718 (ep 15) vs R3 fold 0 0.8805 — the model trained
+directly on teach4 scores *lower against teach4* than the one trained on the OOF-mixed R2 targets; gold-58
+0.895 vs 0.891. Folds 1–4 running (`r5ta` done, `r5tb`, `r5tc`).

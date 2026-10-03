@@ -1,0 +1,6 @@
+{"id": "tranbadat/rsna-knee-xla-ab", "title": "rsna-knee-xla-ab", "code_file": "rsna-knee-xla-ab.py",
+ "language": "python", "kernel_type": "script", "is_private": true, "enable_gpu": false, "enable_tpu": true,
+ "enable_internet": true,
+ "dataset_sources": ["tranbadat/rsna-knee-code", "dreaddevelopment/knee-raptor-corpus", "dreaddevelopment/knee-raptor-corpus-ext"],
+ "kernel_sources": ["tranbadat/rsna-knee-cache256", "tranbadat/rsna-knee-cache-wide256"],
+ "competition_sources": ["rsna-knee-abnormality-detection"], "model_sources": [], "machine_shape": "TpuV5E8"}

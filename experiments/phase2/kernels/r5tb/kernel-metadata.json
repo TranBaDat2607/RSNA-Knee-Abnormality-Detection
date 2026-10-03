@@ -1,0 +1,5 @@
+{"id": "tranbadat/rsna-knee-r5tb", "title": "rsna-knee-r5tb", "code_file": "rsna-knee-r5tb.py",
+ "language": "python", "kernel_type": "script", "is_private": true, "enable_gpu": true, "enable_tpu": false,
+ "enable_internet": true,
+ "dataset_sources": ["tranbadat/rsna-knee-code", "dreaddevelopment/knee-raptor-corpus", "dreaddevelopment/knee-raptor-corpus-ext"],
+ "kernel_sources": [], "competition_sources": ["rsna-knee-abnormality-detection"], "model_sources": [], "machine_shape": "NvidiaTeslaT4"}

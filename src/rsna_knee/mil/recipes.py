@@ -49,6 +49,10 @@ NATIVE44_384 = VolumeRecipe("native44_384", 384, 140.0, (0.06, 0.94), SLOTS_44)
 # stacks exactly (mean |diff| 0.0 on 29 slots of 6 studies, E5c). A model trained on the corpus must
 # be served with this recipe.
 CORPUS44_336 = VolumeRecipe("corpus44_336", 336, 140.0, (0.15, 0.85), SLOTS_44)
+# Same slots as the corpus, but over 4-96 % of each series (the corpus' 15-85 % drops the outer
+# slices, where the collateral ligaments and the edges of the menisci sit), built straight at 256 px.
+WIDE44_256 = VolumeRecipe("wide44_256", 256, 140.0, (0.04, 0.96), SLOTS_44)
+RECIPES = {r.name: r for r in (MAXSPAN_336, DENSE_384, NATIVE44_384, CORPUS44_336, WIDE44_256)}
 
 
 @dataclass(frozen=True)

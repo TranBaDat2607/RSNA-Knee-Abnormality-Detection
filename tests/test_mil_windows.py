@@ -60,3 +60,19 @@ def test_to_model_input_resizes_and_imagenet_normalises():
     assert out.shape == (2, 5, 3, 16, 16)
     expected = (1.0 - 0.485) / 0.229
     assert torch.allclose(out[0, 0, 0], torch.full((16, 16), expected), atol=1e-5)
+
+
+def test_slot_triplets_never_cross_a_series_or_leave_the_filled_slices():
+    from rsna_knee.mil.windows import slot_eval_centres, slot_of, slot_train_centres, slot_triplets
+
+    bounds = (0, 4, 7, 10)
+    vol = np.arange(10, dtype=np.uint8)[:, None, None] * np.ones((1, 2, 2), np.uint8)
+    mask = np.array([1, 1, 1, 1, 1, 1, 0, 1, 1, 1], np.uint8)
+    w = slot_triplets(vol, mask, np.array([0, 3, 4, 5, 7, 9]), bounds)[:, :, 0, 0]
+    # slot edges and the empty slice 6 fall back to the centre slice
+    assert w.tolist() == [[0, 0, 1], [2, 3, 3], [4, 4, 5], [4, 5, 5], [7, 7, 8], [8, 9, 9]]
+    assert slot_of(np.array([0, 3, 4, 6, 7, 9]), bounds).tolist() == [0, 0, 1, 1, 2, 2]
+    c = slot_eval_centres(mask, 12)
+    assert len(c) == 12 and 6 not in c and c[0] == 0 and c[-1] == 9
+    t = slot_train_centres(mask, 9, random.Random(0))
+    assert sorted(t.tolist()) == [0, 1, 2, 3, 4, 5, 7, 8, 9]

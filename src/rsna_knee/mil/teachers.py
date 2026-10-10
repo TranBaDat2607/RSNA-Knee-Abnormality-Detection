@@ -22,6 +22,8 @@ TEACHERS: dict[str, tuple[str, ...]] = {
     "raptor": ("labels_llm_soft.csv",),
     "flight": ("report_labels_v4hybrid.csv",),
     "teach4": ("teach4.csv",),  # phase 2: mean of four clean public tables (0.897 gold agreement), in the code dataset
+    # phase 3: mean of teach4 and NTejas-1's Claude Opus 4.5 report labels (labels_v1_opus45; gold-58 agreement 0.901)
+    "teach4opus": ("teach4opus.csv",),
     "top5mean": ("report_labels_v4hybrid.csv", "llm_labels_v4_blend.csv", "llm_labels_v2.csv",
                  "yunus_llm_labels.csv", "report_labels_v2.csv"),
 }

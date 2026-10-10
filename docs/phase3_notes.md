@@ -95,6 +95,12 @@ v5). This overrides the pre-registered rule on runtime grounds only; no score wa
 named. Note v8/v5 starts peak at ep0 on gold (0.922/0.923) and then decline. More epochs on teach4 move all the
 clean starts toward the weak labels, so ep0-ep1 checkpoints may be the better leg if this is revisited.
 
+### Multi-scale TTA on nartaa (`rsna-knee-oai-tta-gold58`): rejected
+
+Pre-registered: add a view if mean(320, view) gold-58 ≥ 320 − 0.001 and Spearman < 0.99. gold-58: 320 0.9229, 352
+0.9214, 384 0.9215; mean(320,352) 0.9220 (ρ 0.996), mean(320,384) 0.9226 (ρ 0.990), all three 0.9224. No
+diversity, no gain. Matches nartaa's own 320 ≈ 384 finding.
+
 ## Pre-registered blend weights (fixed before any LB read)
 
 - Our R5t leg: 0.10 (rule from phase 2: solo < 0.925 → 0.10).
@@ -105,4 +111,5 @@ clean starts toward the weak labels, so ep0-ep1 checkpoints may be the better le
 
 ## Results
 
-(filled in as submissions are scored)
+Submitted 2026-10-10 19:35 UTC (Claude submits since 10-11, ≤ ~3/day): `57051391` CLEAN C2 (clean-blend v5),
+`57051394` OAI A3 (oai-blend v3), `57051397` OAI A2 (oai-blend v2). Queued for the next day: OAI A1 (v1), CLEAN C1 (v1).

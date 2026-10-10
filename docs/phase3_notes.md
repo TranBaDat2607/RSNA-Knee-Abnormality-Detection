@@ -37,7 +37,6 @@
 | `kernels/oai-blend` | `rsna-knee-oai-blend` | OAI | goodpjw 0.950 notebook (nartaa + reader) + [A2: nartaa 224 checkpoint] + C: our R5t leg (`build.py`) |
 | `kernels/oai-gold58` | `rsna-knee-oai-gold58` | diag | nartaa acc/eff + reader on gold-58 (stand-in root): leg correlations, regression guard |
 | `kernels/clean-blend` | `rsna-knee-clean-blend` | CLEAN | community stack (as in `ours-blend-r3`) + goodpjw reader at a flat 0.30 (goodpjw measured 0.944 for this pair) |
-
 | `kernels/c96-cache` | `rsna-knee-c96-cache` (CPU) | both | nartaa's d96 input (96 slices, 384 px, their `fastread` builder) for all 4,407 training studies, JPEG centre 352 |
 | `kernels/ft96` | `rsna-knee-ft96` | both | fine-tune on d96 with `teach4` labels, 3 epochs, 320 crop + mirror aug: ftO from nartaa (OAI), ftC from Raptor v10 (CLEAN) |
 

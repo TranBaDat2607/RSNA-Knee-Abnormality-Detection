@@ -174,7 +174,7 @@ def run(rank: int, world: int, a: argparse.Namespace, find_file: Callable[[str],
                                          num_workers=a.workers, drop_last=True)
 
     torch.manual_seed(a.seed)
-    backbone = build_backbone(a.arch, pretrained=not a.init)
+    backbone = build_backbone(a.arch, pretrained=not a.init, img_size=a.res if a.corpus == "c96" else 0)
     if a.grad_ckpt:
         backbone.set_grad_checkpointing(True)
     core = MILClassifier(backbone, backbone.num_features).to(device)

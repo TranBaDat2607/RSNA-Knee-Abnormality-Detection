@@ -14,7 +14,10 @@ radiology report instead. The repo has two parts:
    ~0.94 public ensembles — rebuilt as tested, Kaggle-validated code, together with a hypothesis-driven
    study of what it would take to beat that ensemble. Start with
    [`docs/report.md`](docs/report.md); every experiment is logged in
-   [`docs/experiment_ledger.md`](docs/experiment_ledger.md).
+   [`docs/experiment_ledger.md`](docs/experiment_ledger.md);
+3. **Phase 2 — our own k-fold models** (`experiments/phase2/`, branch `feat/phase2-own-models`): ConvNeXt-nano
+   models trained on report labels, scored alone and as a small leg blended into the public stack. Results in
+   [`docs/phase2_notes.md`](docs/phase2_notes.md); how to submit in [`docs/handoff_2026-10-04.md`](docs/handoff_2026-10-04.md).
 
 ## Credit
 
@@ -28,7 +31,9 @@ source of training targets.
 The CoAtNet MIL pipeline runs public checkpoints and data by other competitors, loaded as Kaggle
 datasets and credited to their authors: the "Raptor" CoAtNet checkpoints and the pre-decoded training
 corpus (dreaddevelopment), the residual-gated CoAtNet (mattiaangeli), and public report-label tables
-(flight0234, stevenleehans, yunusgmsoy, pilkwang).
+(flight0234, stevenleehans, yunusgmsoy, pilkwang). The 0.942 blend in phase 2 uses the public
+`jiweiliu/rsna-knee-fast-2xt4-inference` notebook (0.943) unchanged and adds our own model as a
+small-weight leg.
 
 ## Results
 
@@ -57,6 +62,29 @@ later change is measured against.
 Gold-58 numbers are clean hold-out predictions (every checkpoint was trained without those studies).
 Gold-58 has a macro-AUC standard error of ~0.02, so it guards against regressions rather than ranking
 close candidates — see the report for how each claim was tested.
+
+### Phase 2: our own models (2026-10)
+
+Own ConvNeXt-nano 336 px, 18 epochs, 5-fold models on the public pre-decoded corpus. All scores are public LB
+from the Kaggle submissions list (read 2026-10-10); "solo" means our model alone, no public stack.
+
+| Submission | What | Gold-58 | Public LB |
+|---|---|---:|---:|
+| `56654316` | R1: public 0.943 + our 3-fold ConvNeXt-nano, rank blend w = 0.35 | 0.905 | 0.938 |
+| `56753338` | R1 leg alone (3-fold) | 0.905 | 0.917 |
+| `56787175` | R3 solo (`targets_r2`: report labels + OOF mix) | 0.898 | 0.920 |
+| `56787692` | **public 0.943 unchanged + R3 at w = 0.10** | — | **0.942** (best) |
+| `56799230` | R4 solo (heavy-OOF `targets_r4`) | 0.891 | 0.917 |
+| `56803647` | R5t solo (report labels only, no OOF) | 0.905 | 0.922 |
+| `56814752` | R5t solo + 2 full-data models (all 4,349 studies) | — | 0.924 |
+
+What it shows: training on report labels alone (R5t) beats mixing in out-of-fold pseudo-labels (R3, R4) on both
+gold-58 and the LB, and two extra full-data models add +0.002. Our own models are still ~0.02 below the public
+stack alone, so the right use is a small blend weight; by the pre-registered rule (solo < 0.925 → w = 0.10)
+the next blend stays at 0.10 and is only kept if it scores ≥ 0.944.
+
+Standing: team `nammovuivui` is **rank 2,016 of 5,637** at 0.942 (leaderboard downloaded 2026-10-10); the top
+of the board is 0.964.
 
 ## How the labels were generated
 
@@ -100,7 +128,10 @@ scripts/kaggle_mil_train.py Kaggle launcher for training plans (rsna_knee.mil.tr
 data/                       gold labels, LLM-generated labels, usage logs
 docs/report.md              the 2026-09 study: why the 0.94 stack works, experiments, recommended path
 docs/experiment_ledger.md   every hypothesis, experiment, result and decision rule, in order
+docs/phase2_notes.md        phase 2 study: label work, own k-fold models, A/B results
+docs/handoff_2026-10-04.md  phase 2 state, running kernels, how to submit the solo and blend kernels
 docs/requirements.md        competition task description
+experiments/phase2/         Kaggle kernel launchers and analysis scripts for phase 2
 EDA_BASELINE_RESULTS.md     summary of the baseline notebook's results
 CLAUDE.md                   working notes (labeling pipeline, Kaggle operations, experiment state)
 environment.yml             conda environment for local development
@@ -114,7 +145,7 @@ the competition page to download it.
 ```bash
 conda env create -f environment.yml   # CPU-only local env; GPU work runs on Kaggle
 conda activate rsna-knee
-pytest                                # 82 tests
+pytest                                # 98 tests
 ```
 
 or, without conda:

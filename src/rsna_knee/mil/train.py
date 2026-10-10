@@ -28,6 +28,7 @@ import torch.nn as nn
 from sklearn.metrics import roc_auc_score
 
 from ..config import TARGETS
+from . import c96
 from .corpus import Corpus
 from .model import MILClassifier, build_backbone
 from .orientation import canonical_transforms, transform_windows
@@ -60,9 +61,12 @@ class StudyWindows(torch.utils.data.Dataset):
     """``(uint8 windows (k,3,H,W), soft targets (12,), intensity gain)`` per study."""
 
     def __init__(self, corpus: Corpus, rows, targets: np.ndarray, k: int, train: bool, seed: int,
-                 canonical: dict | None = None):
+                 canonical: dict | None = None, crop: int = 0, mirror_p: float = 0.0, mirror_all: bool = False):
         self.corpus, self.rows, self.targets, self.k = corpus, list(rows), targets, k
         self.train, self.seed, self.canonical = train, seed, canonical
+        # d96 cache only: ``crop`` px windows (random offset when training), anatomical L/R mirror with
+        # probability ``mirror_p`` when training, or always (``mirror_all``, the TTA view)
+        self.crop, self.mirror_p, self.mirror_all = crop, mirror_p, mirror_all
 
     def __len__(self) -> int:
         return len(self.rows)
@@ -81,6 +85,14 @@ class StudyWindows(torch.utils.data.Dataset):
         x = triplets(self.corpus.volume(i), centres)
         if self.canonical is not None and i in self.canonical:
             x = transform_windows(x, centres, self.canonical[i])
+        if self.crop:
+            off = None
+            if self.train:
+                h, w = x.shape[-2:]
+                off = (rng.randint(0, h - self.crop), rng.randint(0, w - self.crop))
+            x = c96.crop(x, self.crop, off)
+        if self.mirror_all or (self.train and self.mirror_p and rng.random() < self.mirror_p):
+            x = c96.mirror(x, centres)
         return torch.from_numpy(x), torch.from_numpy(self.targets[j]), torch.tensor(gain, dtype=torch.float32)
 
 
@@ -91,13 +103,27 @@ def macro_auc(y: np.ndarray, p: np.ndarray) -> tuple[float, dict]:
 
 
 @torch.no_grad()
-def predict(model: MILClassifier, res: int, ds: StudyWindows, device, workers: int) -> np.ndarray:
+def predict(model: MILClassifier, res: int, ds: StudyWindows, device, workers: int, chunk: int = 0) -> np.ndarray:
     model.eval()
     out = []
-    for x, _, _ in torch.utils.data.DataLoader(ds, batch_size=2, shuffle=False, num_workers=workers):
+    bs = 1 if chunk else 2
+    for x, _, _ in torch.utils.data.DataLoader(ds, batch_size=bs, shuffle=False, num_workers=workers):
         with torch.autocast("cuda", dtype=torch.float16, enabled=device.type == "cuda"):
-            out.append(torch.sigmoid(model(to_model_input(x.to(device, non_blocking=True), res))).float().cpu().numpy())
+            xi = to_model_input(x.to(device, non_blocking=True), res)
+            logits = model.head(model.encode(xi, chunk)) if chunk else model(xi)
+            out.append(torch.sigmoid(logits).float().cpu().numpy())
     return np.concatenate(out)
+
+
+def predict_tta(model: MILClassifier, res: int, ds: StudyWindows, device, workers: int, chunk: int,
+                mirror_tta: bool) -> np.ndarray:
+    """Plain view, or the mean of the plain and anatomically mirrored views (nartaa's TTA)."""
+    p = predict(model, res, ds, device, workers, chunk)
+    if mirror_tta:
+        ds.mirror_all = True
+        p = 0.5 * (p + predict(model, res, ds, device, workers, chunk))
+        ds.mirror_all = False
+    return p
 
 
 def run(rank: int, world: int, a: argparse.Namespace, find_file: Callable[[str], str] = kaggle_find_file) -> None:
@@ -116,7 +142,7 @@ def run(rank: int, world: int, a: argparse.Namespace, find_file: Callable[[str],
     device = torch.device(f"cuda:{rank}" if ddp else "cuda:0")  # CUDA_VISIBLE_DEVICES picks the card
     torch.backends.cudnn.benchmark = True
 
-    corpus = Corpus(find_file)
+    corpus = c96.C96Corpus(find_file) if a.corpus == "c96" else Corpus(find_file)
     tr = pd.read_csv(find_file("train.csv"))
     tr["StudyInstanceUID"] = tr["StudyInstanceUID"].astype(str)
     gold = tr[tr[TARGETS].notna().all(axis=1)].set_index("StudyInstanceUID")[TARGETS].astype(float)
@@ -136,10 +162,12 @@ def run(rank: int, world: int, a: argparse.Namespace, find_file: Callable[[str],
                                          corpus.row, tag_only=a.side_tag_only)
         log(f"canonical transforms for {len(canonical)} studies")
     y_train = teacher.reindex(train_ids).fillna(teacher.mean()).values.astype(np.float32)
-    train_ds = StudyWindows(corpus, [corpus.row[u] for u in train_ids], y_train, a.k, True, a.seed + rank, canonical)
-    gold_ds = StudyWindows(corpus, [corpus.row[u] for u in gold.index], gold.values.astype(np.float32), a.k_eval, False, 0, canonical)
+    train_ds = StudyWindows(corpus, [corpus.row[u] for u in train_ids], y_train, a.k, True, a.seed + rank, canonical,
+                            crop=a.crop, mirror_p=a.mirror_p)
+    gold_ds = StudyWindows(corpus, [corpus.row[u] for u in gold.index], gold.values.astype(np.float32), a.k_eval, False, 0,
+                           canonical, crop=a.crop)
     hold_ds = StudyWindows(corpus, [corpus.row[u] for u in holdout], reference.reindex(holdout).values.astype(np.float32),
-                           a.k_eval, False, 0, canonical)
+                           a.k_eval_holdout or a.k_eval, False, 0, canonical, crop=a.crop)
     sampler = (torch.utils.data.distributed.DistributedSampler(train_ds, world, rank, shuffle=True, seed=a.seed, drop_last=True)
                if ddp else None)
     loader = torch.utils.data.DataLoader(train_ds, batch_size=a.bs, sampler=sampler, shuffle=sampler is None,
@@ -192,17 +220,18 @@ def run(rank: int, world: int, a: argparse.Namespace, find_file: Callable[[str],
         rec = {"ep": ep, "loss": total / max(n, 1), "train_s": time.time() - te}
         if rank == 0 and ((ep + 1) % a.eval_every == 0 or ep + 1 == a.epochs):
             te = time.time()
-            pg = predict(core, a.res, gold_ds, device, a.workers)
+            pg = predict_tta(core, a.res, gold_ds, device, a.workers, a.eval_chunk, a.mirror_tta)
             rec["gold_macro"], rec["gold_per"] = macro_auc(gold.values, pg)
             np.save(f"{a.out}/gold_pred_ep{ep}.npy", pg)
             if holdout:
-                ph = predict(core, a.res, hold_ds, device, a.workers)
+                ph = predict_tta(core, a.res, hold_ds, device, a.workers, a.eval_chunk, False)
                 rec["holdout_top5ref_macro"], _ = macro_auc(reference.reindex(holdout).values, ph)
                 np.save(f"{a.out}/holdout_pred_ep{ep}.npy", ph)
             rec["eval_s"] = time.time() - te
             if a.save_ckpt:
                 torch.save({"model": core.state_dict(), "arch": a.arch, "res": a.res, "lab": TARGETS, "epoch": ep,
-                            "teacher": a.teacher, "recipe": "corpus44_336", "canonical": a.canonical},
+                            "teacher": a.teacher, "recipe": "d96_c320" if a.corpus == "c96" else "corpus44_336",
+                            "canonical": a.canonical},
                            f"{a.out}/ckpt_ep{ep}.pt")
         history.append(rec)
         log(json.dumps({k: (round(v, 4) if isinstance(v, float) else v) for k, v in rec.items() if k != "gold_per"})
@@ -249,6 +278,12 @@ def parse_args(argv=None) -> argparse.Namespace:
     p.add_argument("--save_ckpt", action="store_true")
     p.add_argument("--time_limit_h", type=float, default=0.0)
     p.add_argument("--out", default="/kaggle/working/run")
+    p.add_argument("--corpus", default="raptor44", choices=("raptor44", "c96"))
+    p.add_argument("--crop", type=int, default=0, help="window crop in px (c96: 320 = nartaa's inference crop)")
+    p.add_argument("--mirror_p", type=float, default=0.0, help="training probability of the anatomical L/R mirror")
+    p.add_argument("--mirror_tta", action="store_true", help="gold-58 scored as the mean of plain + mirrored views")
+    p.add_argument("--eval_chunk", type=int, default=0, help="images per backbone call at evaluation (0 = all)")
+    p.add_argument("--k_eval_holdout", type=int, default=0)
     a = p.parse_args(argv)
     a.tag = a.tag or a.teacher
     return a

@@ -38,6 +38,31 @@
 | `kernels/oai-gold58` | `rsna-knee-oai-gold58` | diag | nartaa acc/eff + reader on gold-58 (stand-in root): leg correlations, regression guard |
 | `kernels/clean-blend` | `rsna-knee-clean-blend` | CLEAN | community stack (as in `ours-blend-r3`) + goodpjw reader at a flat 0.30 (goodpjw measured 0.944 for this pair) |
 
+| `kernels/c96-cache` | `rsna-knee-c96-cache` (CPU) | both | nartaa's d96 input (96 slices, 384 px, their `fastread` builder) for all 4,407 training studies, JPEG centre 352 |
+| `kernels/ft96` | `rsna-knee-ft96` | both | fine-tune on d96 with `teach4` labels, 3 epochs, 320 crop + mirror aug: ftO from nartaa (OAI), ftC from Raptor v10 (CLEAN) |
+
+### Gold-58 of the public legs (`rsna-knee-oai-gold58`, `analysis/gold_legs.py`)
+
+| Leg / variant | gold-58 macro | vs AB parent [95 % CI] |
+|---|---|---|
+| nartaa acc (selected on gold, optimistic) | 0.9229 | |
+| nartaa eff 224 | 0.9150 | |
+| goodpjw reader (clean, gold never trained on) | 0.9153 | |
+| our R5t (5 folds + 2 full) | 0.9063 | |
+| AB = goodpjw 0.950 notebook | 0.9248 | |
+| v1: AB + ours 0.10 | 0.9257 | +0.0009 [−0.0008, +0.0028] |
+| v2: eff 0.25 in A, then B | 0.9275 | +0.0027 [−0.0005, +0.0069] |
+| v3: v2 + ours 0.10 | 0.9280 | +0.0031 [−0.0007, +0.0079] |
+
+Mean Spearman between legs on gold: ours–acc 0.89, ours–reader 0.88, reader–acc 0.89, eff–acc 0.94. No variant
+regresses; the LB decides.
+
+### FT96 decision rule (pre-registered)
+
+A fine-tuned model becomes a blend leg only if its gold-58 (94 windows, mirror TTA) is at least its start
+checkpoint's gold-58 minus 0.005 and its rank correlation with the start is below 0.97 (otherwise it adds nothing).
+ftO enters the OAI blend at 0.25 inside Part A (same slot as the eff checkpoint); ftC enters the clean blend at 0.20.
+
 ## Pre-registered blend weights (fixed before any LB read)
 
 - Our R5t leg: 0.10 (rule from phase 2: solo < 0.925 → 0.10).

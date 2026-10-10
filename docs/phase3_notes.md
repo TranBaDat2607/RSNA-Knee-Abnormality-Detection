@@ -101,6 +101,20 @@ Pre-registered: add a view if mean(320, view) gold-58 ≥ 320 − 0.001 and Spea
 0.9214, 384 0.9215; mean(320,352) 0.9220 (ρ 0.996), mean(320,384) 0.9226 (ρ 0.990), all three 0.9224. No
 diversity, no gain. Matches nartaa's own 320 ≈ 384 finding.
 
+### Label tables vs gold-58 (clean, LLM-from-report)
+
+| Table | gold-58 macro | note |
+|---|---|---|
+| teach4 (ours, phase 2) | 0.8963 | |
+| JEV FINAL2 / HYBRID | 0.8745 / 0.9025 | HYBRID blend and thresholds were **tuned on gold studies**, so optimistic |
+| Opus 4.5 v1 (NTejas-1 GitHub) | 0.8919 | no gold copying |
+| Opus 4.5 v2 "repaired" | 0.8941 | self-distilled from model OOF; its author found it hurt training, not used |
+| **teach4 + Opus v1 mean (`teach4opus`)** | **0.9014** | +0.005 over teach4 |
+
+### ft96c (pre-registered): ftC recipe on `teach4opus`, 2 epochs, v10 and v5 starts
+
+One replaces ftC in the clean blend only if its final gold-58 ≥ 0.9241 (ftC + 0.003). Otherwise ftC stays.
+
 ## Pre-registered blend weights (fixed before any LB read)
 
 - Our R5t leg: 0.10 (rule from phase 2: solo < 0.925 → 0.10).

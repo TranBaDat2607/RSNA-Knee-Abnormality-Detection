@@ -58,6 +58,56 @@ except Exception as _x:
     return [write, run]
 
 
+def ft_script(acc_src, ckpt_glob, out_csv):
+    """nartaa's accuracy-notebook source (320 crop, all 94 windows, anatomical mirror TTA) serving one of our
+    FT96 checkpoints instead of the 0.949 one: the checkpoint is located by glob, the SHA/384 pins are relaxed."""
+    sha = "assert observed_sha == '7e5315dad125b99fc65b340b3de41de628e9be51ff5835355dd61c86472244ef'"
+    res = 'assert int(ck.get("res", res_default)) == 384, "Expected original 384 checkpoint"'
+    call = 'load_model(find_weight_file(arm["file"]), arm["arch"], arm["res"], d)'
+    out = 'out = "/kaggle/working/submission.csv"'
+    for x in (sha, res, call, out):
+        assert x in acc_src, x
+    src = (acc_src.replace(sha, "pass  # FT96 checkpoint: no SHA pin; " + sha[:20])
+           .replace(res, 'assert int(ck.get("res", res_default)) in (320, 384)')
+           .replace(call, 'load_model(_FT_CKPT, arm["arch"], arm["res"], d)')
+           .replace(out, f'out = "/kaggle/working/{out_csv}"'))
+    pats = ", ".join(repr(f"/kaggle/input/{'*/' * d}{ckpt_glob}") for d in (1, 2, 3))
+    head = (f"import glob as _g\n_FT_CKPT = sorted(p for pat in ({pats}) for p in _g.glob(pat))[0]\n"
+            "print('FT96 checkpoint', _FT_CKPT, flush=True)\n")
+    return head + src
+
+
+def leg_cells(title, script, w, out_csv, tmp):
+    """Write ``script`` to ``tmp``, run it, and rank-blend its ``out_csv`` into submission.csv at weight ``w``."""
+    write = code(f"# ---- {title} ----\nopen({tmp!r}, 'w').write(" + repr(script) + ")\n")
+    run = code(r'''import gc, os, shutil, subprocess, sys, time
+import numpy as np, pandas as pd
+_W, _TMP, _OUT = %r, %r, %r
+try:
+    import torch; gc.collect(); torch.cuda.empty_cache()
+except Exception as _e:
+    print('cuda cleanup skipped', _e)
+shutil.copy('/kaggle/working/submission.csv', '/kaggle/working/_prev_submission.csv')
+_t0 = time.time()
+try:
+    _rc = subprocess.run([sys.executable, '-u', _TMP], timeout=3 * 3600).returncode
+    assert _rc == 0, 'leg exit code %%d' %% _rc
+    _a = pd.read_csv('/kaggle/working/_prev_submission.csv', dtype={'StudyInstanceUID': str})
+    _e = pd.read_csv('/kaggle/working/' + _OUT, dtype={'StudyInstanceUID': str}).set_index('StudyInstanceUID').loc[_a.StudyInstanceUID].reset_index()
+    _lab = [c for c in _a.columns if c != 'StudyInstanceUID']
+    assert _e[_lab].notna().all().all() and np.isfinite(_e[_lab].values).all(), 'leg NaN'
+    _r = lambda d: d[_lab].rank(method='average', pct=True)
+    _o = _a.copy()
+    _o[_lab] = ((1 - _W) * _r(_a) + _W * _r(_e)).rank(method='average', pct=True)
+    _o.to_csv('/kaggle/working/submission.csv', index=False)
+    print('leg', _OUT, 'blended at', _W, 'in %%.0fs' %% (time.time() - _t0), flush=True)
+except Exception as _x:
+    shutil.copy('/kaggle/working/_prev_submission.csv', '/kaggle/working/submission.csv')
+    print('leg', _OUT, 'FAILED, previous submission kept:', repr(_x), flush=True)
+''' % (w, tmp, out_csv))
+    return [write, run]
+
+
 def ours_cell(ours_w):
     return code(r'''# ---- Part C: our leg (R5t ConvNeXt-nano 336), rank blend at a fixed weight; any failure keeps the previous file ----
 import gc, os, shutil, subprocess, sys
@@ -97,6 +147,8 @@ def main():
     p.add_argument("eff_nb")
     p.add_argument("--w-eff", type=float, default=0.0)
     p.add_argument("--ours-w", type=float, default=0.10)
+    p.add_argument("--ft-glob", default="", help="FT96 checkpoint glob below /kaggle/input/<x>/, e.g. ftO/ckpt_ep2.pt")
+    p.add_argument("--w-ft", type=float, default=0.0)
     a = p.parse_args()
     nb = json.load(open(a.goodpjw_nb, encoding="utf8"))
     for c in nb["cells"]:
@@ -109,10 +161,14 @@ def main():
         "# RSNA Knee: OAI track blend (private)\n\n",
         "Track **OAI**: uses public weights trained with OAI external data.\n",
         f"Parts A+B: goodpjw2008's public 0.950 notebook unchanged. Part A2: nartaa 0.945 efficiency checkpoint, w={a.w_eff}. ",
-        f"Part C: our R5t leg, w={a.ours_w}. Every added part falls back to the previous file on failure.\n"]}
+        f"Part A3: FT96 {a.ft_glob} w={a.w_ft}. Part C: our R5t leg, w={a.ours_w}. Every added part falls back to the previous file on failure.\n"]}
     new = [head] + cells[:8]
     if a.w_eff > 0:
         new += eff_cells(a.eff_nb, a.w_eff)
+    if a.w_ft > 0:
+        acc_src = "".join(cells[7]["source"])
+        new += leg_cells("Part A3: our FT96 checkpoint " + a.ft_glob, ft_script(acc_src, a.ft_glob, "ft_sub.csv"),
+                         a.w_ft, "ft_sub.csv", "/tmp/ft_run.py")
     new += cells[8:]
     if a.ours_w > 0:
         new.append(ours_cell(a.ours_w))

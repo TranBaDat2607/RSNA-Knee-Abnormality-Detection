@@ -80,6 +80,21 @@ Same recipe from the public Raptor v8 and v5 checkpoints (seeds 8, 5). A sibling
 ≥ 0.912. The clean FT leg becomes the rank-mean of the accepted ftC models if that mean's gold-58 ≥ ftC alone −
 0.002 (otherwise ftC alone stays). Weight in the clean blend unchanged (0.20).
 
+### ft96b results (`rsna-knee-ft96b` v2, 166 min; v1 sat in QUEUED and was replaced)
+
+| Model | gold-58 ep0 / ep1 / ep2 | holdout-300 vs teach4 | decision |
+|---|---|---|---|
+| ftC8 (v8 start) | 0.9219 / 0.9146 / 0.9142 | 0.8991 | accepted (≥ 0.912) |
+| ftC5 (v5 start) | 0.9231 / 0.9191 / 0.9195 | 0.9100 | accepted |
+| family rank-mean (ftC, ftC8, ftC5) | 0.9212 (ftC 0.9211) | 0.9113 (ftC 0.9115) | passes the rule, **not used** |
+
+Holdout Spearman between siblings is 0.94–0.95, so the mean adds nothing measurable (+0.0001 gold, −0.0002 holdout).
+The clean notebook already takes ≈ 7.5 h of 9 h, and two extra CoAtNet-2 legs would cost ≈ 40–60 min. By the
+code-competition rule (drop the worst Δscore/runtime members first), clean C2 keeps ftC alone (`rsna-knee-clean-blend`
+v5). This overrides the pre-registered rule on runtime grounds only; no score was looked at beyond what the rule
+named. Note v8/v5 starts peak at ep0 on gold (0.922/0.923) and then decline. More epochs on teach4 move all the
+clean starts toward the weak labels, so ep0-ep1 checkpoints may be the better leg if this is revisited.
+
 ## Pre-registered blend weights (fixed before any LB read)
 
 - Our R5t leg: 0.10 (rule from phase 2: solo < 0.925 → 0.10).

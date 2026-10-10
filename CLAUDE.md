@@ -30,10 +30,16 @@ tests/                  unit tests for src/rsna_knee (DICOM-free modules run loc
 scripts/llm_label_gold.py   LLM report-labeling pipeline
 scripts/kaggle_submit.py    offline Kaggle submission entry (rsna_knee.mil.submit)
 scripts/kaggle_mil_train.py Kaggle launcher for training plans (rsna_knee.mil.train/plan)
+scripts/kaggle_kfold_train.py  Kaggle launcher for our own k-fold models (rsna_knee.mil.kfold);
+                         kaggle_kfold_xla.py is the TPU variant (never used: queue too long)
+experiments/phase2/     Kaggle kernel folders (kernel-metadata.json + script) and analysis/ scripts
+                         for phase 2; its README maps every kernel to its result
 data/                   gold labels, LLM-generated labels, usage logs (train.csv/test.csv
                          and raw DICOM are NOT included — see competition page)
 docs/report.md          2026-09-12 study: why the 0.94 stack works, experiments, path forward
 docs/experiment_ledger.md  every hypothesis/experiment/result/decision rule, in order
+docs/phase2_notes.md    phase 2 study: label work, own k-fold models, A/B results
+docs/handoff_2026-10-04.md  phase 2 state, running kernels, how to submit solo/blend kernels
 docs/requirements.md    competition task description
 EDA_BASELINE_RESULTS.md summary of the baseline notebook's results
 environment.yml         conda env `rsna-knee` (CPU-only; all GPU work runs on Kaggle)
@@ -50,7 +56,7 @@ page into `data/` (or mounted, on Kaggle) before the imaging pipeline can run.
 ```bash
 conda env create -f environment.yml && conda activate rsna-knee   # or: pip install -e ".[dev,viz,mil]"
 pip install -e ".[dev]"     # install package + pytest
-pytest                       # run all tests (82 passing locally; see below for scope)
+pytest                       # run all tests (98 passing locally; see below for scope)
 pytest tests/test_targets.py                    # single file
 pytest tests/test_targets.py::test_gold_positions   # single test
 
@@ -480,3 +486,41 @@ runtime with a pinned OpenCV 4.12 wheel in a subprocess) → ≈ 2.5–3 h of th
 - The residual-gated arm's runtime needs `test.csv`, `test_series.csv`, `sample_submission.csv`
   (same study order) and `test_series/`; a stand-in root with symlinked training studies lets it run
   on gold-58 (E7).
+
+## Phase 2 — our own k-fold models (2026-09-29 → 10-10, branch `feat/phase2-own-models`, merged as PR #4)
+
+Read `docs/phase2_notes.md` (results + pre-registered rules), `docs/handoff_2026-10-04.md` (how
+to submit) and `experiments/phase2/README.md` (kernel → result table) first.
+
+**Standing:** best public LB **0.942** (`56787692`: jiweiliu 0.943 public notebook + our R3 leg at
+rank-blend weight 0.10; rank 2016/5637). Our own models alone: **R5t 0.922** > R3 0.920 > R4 0.917.
+Gold-58 ranks them identically, so it is a usable regression guard (not for tuning ±0.01 effects).
+
+**Code (`src/rsna_knee/mil/`):** `cache.py` (256 px copy of the public 44×336 corpus; `shrink_volume`
+is the only resize, used at train *and* test), `kfold.py` (5-fold grouped by report hash, GPU affine
+aug, EMA, fp16/channels-last; `--folds -1` trains one full-data model; writes `oof.csv`, `gold.npy`,
+`model.pt` per fold), `fleet.py` (test inference: process-pool DICOM decode with the exact corpus
+recipe → shrink → all checkpoints), `ours.py` (submission leg: averages folds within a tag, rank-
+averages tags, rank-blends with a public `submission.csv` at fixed weight; any failure falls back to
+the public file), `kfold_xla.py` (TPU variant, unused).
+
+**Findings that should steer further work:**
+- Train on report labels (`teach4.csv` = mean of four clean public tables, 0.897 gold agreement), not
+  OOF pseudo-labels: more OOF mixing fits the report labels better and the expert labels worse. Label
+  tables are shipped in the code dataset, not committed to git.
+- Image recipe: ConvNeXt-nano 336 px, 18–20 epochs. Rejected/neutral (fold-0 A/Bs, noise floor ≈ 0.002):
+  slot-aware windows, wider span, tissue-centred crop, more windows, ConvNeXt-tiny, ResNet-50,
+  CoAtNet-1, gold-58 label calibration.
+- Our own models don't stack with each other; against the public Raptor family they correlate 0.87,
+  so use them as a small-weight blend leg (pre-registered: solo < 0.925 → w 0.10; 0.925–0.934 → 0.20;
+  ≥ 0.935 → 0.35; keep a blend only if it scores ≥ 0.944).
+- Kaggle GPU quota is 30 h/week (the quota API misreports 6 h); max 2 concurrent GPU sessions, 1 TPU
+  session. Grading the blend notebook takes ≈ 7 h of the 9 h limit.
+
+**Workflow conventions:** commit and push every experiment's code, launcher and result note; keep the
+solution independent (public ideas are fine, no merging with other teams); prepare submissions and
+hand them off — the user runs `kaggle competitions submit`.
+
+**Open (at last handoff):** fold-0 A/B of 64-slice maxspan input (`rsna-knee-gpu-ab5`) vs 0.8753, and
+whether the full-data R5t models (`rsna-knee-r5tfull`) beat 0.922 solo. Final picks: best blend
+(≥ 0.944) plus a safe hedge (0.942 blend or E8 0.939). Deadline 2026-10-22.

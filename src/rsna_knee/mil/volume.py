@@ -65,14 +65,30 @@ def read_pixels(path: str) -> np.ndarray:
     return a
 
 
-def crop_resize(a: np.ndarray, spacing: float, crop_mm: float, img: int) -> np.ndarray:
-    """Centre-crop ``crop_mm`` millimetres (bounded by the image) and area-resize to ``img``."""
+def crop_resize(a: np.ndarray, spacing: float, crop_mm: float, img: int,
+                centre: tuple[float, float] | None = None) -> np.ndarray:
+    """Crop ``crop_mm`` millimetres (bounded by the image) around ``centre`` (row, col; default the image
+    centre, shifted so the crop stays inside the image) and area-resize to ``img``."""
     import cv2
 
     h, w = a.shape
     side = min(int(round(crop_mm / max(spacing, 1e-3))), min(h, w))
-    y0, x0 = (h - side) // 2, (w - side) // 2
+    if centre is None:
+        y0, x0 = (h - side) // 2, (w - side) // 2
+    else:
+        y0 = int(min(max(round(centre[0] - side / 2), 0), h - side))
+        x0 = int(min(max(round(centre[1] - side / 2), 0), w - side))
     return cv2.resize(a[y0:y0 + side, x0:x0 + side], (img, img), interpolation=cv2.INTER_AREA)
+
+
+def tissue_centre(a: np.ndarray) -> tuple[float, float] | None:
+    """Centroid (row, col) of the Otsu tissue mask of a ``[0, 1]`` slice; None when nothing is found."""
+    import cv2
+
+    g = (np.clip(a, 0, 1) * 255).astype(np.uint8)
+    _, m = cv2.threshold(cv2.GaussianBlur(g, (5, 5), 0), 0, 1, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    ys, xs = np.nonzero(m)
+    return (float(ys.mean()), float(xs.mean())) if len(xs) else None
 
 
 def pick_series(rows: SeriesRows, plane: str, fluid: int, used: set[str]) -> Mapping | None:
@@ -121,6 +137,10 @@ def build_volume(study_uid: str, rows: SeriesRows, series_root: str, recipe: Vol
         valid = [a for a in arrays if a is not None]
         lo, hi = (np.percentile(np.concatenate([a.ravel() for a in valid]), [2.0, 98.0])
                   if valid else (0.0, 1.0))
+        centre = None
+        if recipe.center == "tissue" and valid:
+            mid = valid[len(valid) // 2]
+            centre = tissue_centre(np.clip((mid - lo) / (hi - lo + 1e-6), 0, 1))
         for a, ps in zip(arrays, spacings):
             if idx >= n_total:
                 break
@@ -128,7 +148,9 @@ def build_volume(study_uid: str, rows: SeriesRows, series_root: str, recipe: Vol
                 idx += 1
                 continue
             a = np.clip((a - lo) / (hi - lo + 1e-6), 0, 1)
-            a = resize_fn(a, ps if ps > 0 else median_spacing, recipe.crop_mm, recipe.img)
+            sp = ps if ps > 0 else median_spacing
+            a = (resize_fn(a, sp, recipe.crop_mm, recipe.img, centre) if centre is not None
+                 else resize_fn(a, sp, recipe.crop_mm, recipe.img))
             vol[idx] = (a * 255).astype(np.uint8)
             idx += 1
         if idx >= n_total:

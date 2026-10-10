@@ -1,0 +1,17 @@
+{
+ "id": "tranbadat/rsna-knee-c96-cache",
+ "title": "rsna-knee-c96-cache",
+ "code_file": "rsna-knee-c96-cache.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": false,
+ "enable_tpu": false,
+ "enable_internet": false,
+ "keywords": [],
+ "dataset_sources": [],
+ "kernel_sources": [],
+ "competition_sources": ["rsna-knee-abnormality-detection"],
+ "model_sources": [],
+ "docker_image": "gcr.io/kaggle-private-byod/python@sha256:2757e0c7d1e0a9cb43da657b97e223c321a98f5014bdf64f44f2f6b083ad2b2f"
+}

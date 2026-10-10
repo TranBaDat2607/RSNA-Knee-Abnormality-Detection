@@ -126,4 +126,15 @@ One replaces ftC in the clean blend only if its final gold-58 ≥ 0.9241 (ftC + 
 ## Results
 
 Submitted 2026-10-10 19:35 UTC (Claude submits since 10-11, ≤ ~3/day): `57051391` CLEAN C2 (clean-blend v5),
-`57051394` OAI A3 (oai-blend v3), `57051397` OAI A2 (oai-blend v2). Queued for the next day: OAI A1 (v1), CLEAN C1 (v1).
+`57051394` OAI A3 (oai-blend v3), `57051397` OAI A2 (oai-blend v2).
+
+| Submission | Variant | Public LB | vs parent |
+|---|---|---|---|
+| (public) | goodpjw notebook = nartaa + reader (parent) | 0.950 | |
+| `57051397` | A2: + nartaa 224 checkpoint 0.25 | **0.950** | 0.000 |
+| `57051394` | A3: A2 + our R5t leg 0.10 | 0.949 | −0.001 |
+| `57051391` | C2 clean: stack + reader 0.30 + ftC 0.20 | pending | |
+
+The gold-58 gains (+0.0027 / +0.0031) did not transfer. Our R5t leg costs ≈ 0.001 again, the same as on the clean
+stack (0.943 → 0.942), so it is retired from both tracks. A1 (R5t-only leg) is not submitted, since both its
+pieces are already answered. Our best is now 0.950 (A2), the public-fork plateau where ≈ 890 teams sit.

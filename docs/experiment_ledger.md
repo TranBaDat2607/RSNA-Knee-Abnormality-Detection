@@ -407,3 +407,38 @@ already computes), not as a strategy.
   fusion gain over the CoAtNet family is ≥ +0.004 with P>0 ≥ 0.8 **and** at least the control run's
   gain. If the control adds as much, the gain is "another independent run", not the teacher — then
   the full run uses whichever teacher scored higher on gold-58, and labels are not credited.
+
+## Phase 2 — past 0.943 with our own model family (started 2026-09-29)
+
+**Why:** the best *public-only* notebooks score 0.943 (search API `best_public_score`); the two public
+0.945 notebooks (`pjmathematician/rsna-knee-d4-lite`, `aastikrajan15/knee-s75-w50`) are that stack
+rank-blended at 0.45–0.5 with the author's own private model (aastikrajan's ConvNeXt-tiny fleet scores
+0.927 alone). The competition's "Best single-model score" thread (topic 735304) reports single small
+models at 0.94–0.954 (ResNet/EfficientNet/CoAtNet at 224–288 px, 2.5-D), with labels — soft,
+multi-source, and OOF-pseudo-label mixed — as the lever. The Efficiency LB's #1 entry scores 0.958.
+GPU budget: 6 h/week (`get_accelerator_quota_statistics`).
+
+### A07 — public label tables vs gold-58, with a gold-leak check  *(local)*
+
+- 9 of ~20 public tables contain the gold labels verbatim (leak = 1.0: mohammadsaidulislam super,
+  noisyislands calibrated, shingo257 ×3, tonylin1026 refined, yehezkielhaganta, riadmohamed42 gold74);
+  `narisettichaitanya/teacher_soft_labels` is gold-smoothed (0.996). Excluded.
+- Clean: tsuyu122 balanced 0.912 (mixes MRNet/OAI, undocumented construction — not used), riadmohamed42
+  HYBRID 0.905, flight0234 0.899, nartaa v0 0.893, stevenleehans v4 0.893.
+- **teach4** = mean(riad HYBRID, flight, steven v4, nartaa v0): 0.897. Our Aug OOF predictions of the
+  public DINOv3 / RadImageNet fold models (kernels `dinov3-oof-full-corpus`, `radimagenet-oof-full-corpus`,
+  gold 0.827 / 0.853) blended in: 0.75·teach4 + 0.25·mean(OOF) = **0.9145** gold (Synovitis 0.80).
+  → `targets_r1.csv` (training), `teach4.csv` (text-only validation reference).
+
+### R1 — 5-fold small CNNs on the 256 px corpus cache  *(pre-registered 2026-09-29)*
+
+- Cache: `tranbadat/rsna-knee-cache256` (CPU kernel) — corpus 44×336 → 44×256, `cv2.INTER_AREA`;
+  the same `shrink_volume` runs after `build_volume(CORPUS44_336)` at test time (parity unit test).
+- Training: `rsna_knee.mil.kfold` via `tranbadat/rsna-knee-kfold-r1`: resnet34.a1_in1k and
+  convnext_nano.in12k_ft_in1k, one per T4, 5 folds grouped by report hash, 12 epochs, k=16 windows,
+  affine aug, EMA; best epoch chosen on the fold's validation studies vs teach4. Outputs OOF for R2.
+- Submission: jiweiliu's public 0.943 notebook unchanged + `rsna_knee.mil.ours` rank blend at a fixed
+  **w = 0.4** (kernel `tranbadat/rsna-knee-ours-blend`).
+- **Decision rule:** keep the blend if public LB ≥ 0.945 (above the public 0.943 base and the 0.945
+  private-model forks); R2 (pseudo-labels 0.35·teach4 + 0.65·R1 OOF, same recipe) runs either way,
+  since OOF pseudo-labels are the reported lever. If LB < 0.943, the leg's weight is halved before R2.

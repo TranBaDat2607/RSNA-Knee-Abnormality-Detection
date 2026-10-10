@@ -28,6 +28,7 @@ class VolumeRecipe:
     crop_mm: float              # centred physical crop before resizing
     span: tuple[float, float]   # fraction of the series the slices are spread over
     slots: tuple[Slot, ...]
+    center: str = "image"       # crop centre: "image", or "tissue" (per-series tissue centroid)
 
     @property
     def n_slices(self) -> int:
@@ -49,6 +50,18 @@ NATIVE44_384 = VolumeRecipe("native44_384", 384, 140.0, (0.06, 0.94), SLOTS_44)
 # stacks exactly (mean |diff| 0.0 on 29 slots of 6 studies, E5c). A model trained on the corpus must
 # be served with this recipe.
 CORPUS44_336 = VolumeRecipe("corpus44_336", 336, 140.0, (0.15, 0.85), SLOTS_44)
+# Same slots as the corpus, but over 4-96 % of each series (the corpus' 15-85 % drops the outer
+# slices, where the collateral ligaments and the edges of the menisci sit), built straight at 256 px.
+WIDE44_256 = VolumeRecipe("wide44_256", 256, 140.0, (0.04, 0.96), SLOTS_44)
+# Raptor v5's slot layout and span (64 slices over 2-98 %, the same slice density as the corpus but full
+# coverage — WIDE44 spread 44 slices thinner and lost), built straight at 256 px so the cache fits 20 GB.
+MAXSPAN64_256 = VolumeRecipe("maxspan64_256", 256, 140.0, (0.02, 0.98), SLOTS_64)
+# The corpus layout with the 140 mm crop centred on each series' tissue instead of the image: the knee sits a
+# median 9-13 mm (p90 21-26 mm) off the image centre on sagittal/coronal series, so the centred crop cuts
+# 10-12 % of the tissue (crop diagnostic, 400 studies) — the MCL lies at the coronal edge.
+CORPUS44C_256 = VolumeRecipe("corpus44c_256", 256, 140.0, (0.15, 0.85), SLOTS_44, center="tissue")
+RECIPES = {r.name: r for r in (MAXSPAN_336, DENSE_384, NATIVE44_384, CORPUS44_336, WIDE44_256, MAXSPAN64_256,
+                               CORPUS44C_256)}
 
 
 @dataclass(frozen=True)

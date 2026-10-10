@@ -77,8 +77,9 @@ def ft_script(acc_src, ckpt_glob, out_csv):
     return head + src
 
 
-def leg_cells(title, script, w, out_csv, tmp):
-    """Write ``script`` to ``tmp``, run it, and rank-blend its ``out_csv`` into submission.csv at weight ``w``."""
+def leg_cells(title, script, w, out_csv, tmp, skip_after_h=0.0):
+    """Write ``script`` to ``tmp``, run it, and rank-blend its ``out_csv`` into submission.csv at weight ``w``.
+    ``skip_after_h`` > 0: skip the leg when the notebook has already run that long (needs the T0 cell first)."""
     write = code(f"# ---- {title} ----\nopen({tmp!r}, 'w').write(" + repr(script) + ")\n")
     run = code(r'''import gc, os, shutil, subprocess, sys, time
 import numpy as np, pandas as pd
@@ -90,6 +91,8 @@ except Exception as _e:
 shutil.copy('/kaggle/working/submission.csv', '/kaggle/working/_prev_submission.csv')
 _t0 = time.time()
 try:
+    _elapsed_h = (time.time() - globals().get('_NB_T0', time.time())) / 3600
+    assert not (%r > 0 and _elapsed_h > %r), 'time guard: notebook already at %%.2f h' %% _elapsed_h
     _rc = subprocess.run([sys.executable, '-u', _TMP], timeout=3 * 3600).returncode
     assert _rc == 0, 'leg exit code %%d' %% _rc
     _a = pd.read_csv('/kaggle/working/_prev_submission.csv', dtype={'StudyInstanceUID': str})
@@ -104,8 +107,11 @@ try:
 except Exception as _x:
     shutil.copy('/kaggle/working/_prev_submission.csv', '/kaggle/working/submission.csv')
     print('leg', _OUT, 'FAILED, previous submission kept:', repr(_x), flush=True)
-''' % (w, tmp, out_csv))
+''' % (w, tmp, out_csv, skip_after_h, skip_after_h))
     return [write, run]
+
+
+T0_CELL = code("import time\n_NB_T0 = time.time()  # notebook start, for the legs' time guards\n")
 
 
 def ours_cell(ours_w):

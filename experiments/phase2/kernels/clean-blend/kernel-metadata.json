@@ -31,7 +31,8 @@
  ],
  "kernel_sources": [
   "sofiaanjenje/rsna-knee-e11-train",
-  "sofiaanjenje/rsna-knee-e13-train"
+  "sofiaanjenje/rsna-knee-e13-train",
+  "tranbadat/rsna-knee-ft96"
  ],
  "competition_sources": [
   "rsna-knee-abnormality-detection"

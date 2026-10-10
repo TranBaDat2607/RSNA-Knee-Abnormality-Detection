@@ -10,7 +10,7 @@ ss = (glob.glob('/kaggle/input/competitions/rsna-knee-abnormality-detection/samp
       + glob.glob('/kaggle/input/rsna-knee-abnormality-detection/sample_submission.csv'))[0]
 env = {**os.environ, 'PYTHONPATH': code}
 rc = subprocess.run([sys.executable, '-m', 'rsna_knee.mil.ours', '--public', ss, '--out',
-                     '/kaggle/working/submission.csv', '--w', '1.0', '--tags', os.environ.get('TAGS', 'r5t_nano336'),
+                     '/kaggle/working/submission.csv', '--w', '1.0', '--tags', os.environ.get('TAGS', 'r5t_nano336,r5tfull_nano336'),
                      '--workers', '4'], env=env).returncode
 print('rc', rc, flush=True)
 import pandas as pd

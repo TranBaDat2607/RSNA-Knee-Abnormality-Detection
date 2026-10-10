@@ -15,7 +15,8 @@
  "kernel_sources": [
   "tranbadat/rsna-knee-r5ta",
   "tranbadat/rsna-knee-r5tb",
-  "tranbadat/rsna-knee-r5tc"
+  "tranbadat/rsna-knee-r5tc",
+  "tranbadat/rsna-knee-r5tfull"
  ],
  "competition_sources": [
   "rsna-knee-abnormality-detection"

@@ -115,6 +115,11 @@ diversity, no gain. Matches nartaa's own 320 ≈ 384 finding.
 
 One replaces ftC in the clean blend only if its final gold-58 ≥ 0.9241 (ftC + 0.003). Otherwise ftC stays.
 
+Result (`rsna-knee-ft96c`, 86 min): ftC5o (v5 start) ep0 0.9270, ep1 **0.9242**, passes by 0.0001. ftCo (v10 start)
+ep0 0.9251, ep1 0.9226, fails. The teach4opus labels lifted every ep0 (0.925–0.927 vs 0.917–0.923 on teach4).
+**Not executed** (user stopped the session here): the next step is clean-blend with `--ft-glob ftC5o/ckpt_ep1.pt`
+(kernel source `tranbadat/rsna-knee-ft96c`) at the same 0.20. The margin is 0.0001 on 58 studies, so expect ≈ 0 on the LB.
+
 ## Pre-registered blend weights (fixed before any LB read)
 
 - Our R5t leg: 0.10 (rule from phase 2: solo < 0.925 → 0.10).

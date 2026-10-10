@@ -62,6 +62,24 @@ A fine-tuned model becomes a blend leg only if its gold-58 (94 windows, mirror T
 checkpoint's gold-58 minus 0.005 and its rank correlation with the start is below 0.97 (otherwise it adds nothing).
 ftO enters the OAI blend at 0.25 inside Part A (same slot as the eff checkpoint); ftC enters the clean blend at 0.20.
 
+### FT96 results (`rsna-knee-ft96`, 126 min for both jobs on 2×T4)
+
+| Job | start gold-58 | ep0 | ep1 | ep2 | holdout (top5mean ref) | decision |
+|---|---|---|---|---|---|---|
+| ftO (nartaa start, OAI) | 0.9229 | 0.9164 | 0.9101 | 0.9099 | 0.921 | **rejected**: below start − 0.005, Spearman with nartaa 0.972 |
+| ftC (Raptor v10 start, clean) | 0.9174 (own recipe) | 0.9171 | 0.9198 | **0.9211** | 0.909 | **accepted** for the clean blend at 0.20 |
+
+ftC Spearman: with the reader 0.894, with nartaa 0.926. Gold-58: reader + ftC 50/50 = 0.9236 vs the reader alone
+0.9153. In the OAI blend ftC adds only about +0.0007 on gold, so it is not used there.
+Fine-tuning nartaa on teach4 pulls it away from the expert labels. nartaa's own labels (their report labels +
+three public tables + JEV) appear better aligned with gold than teach4.
+
+### ft96b (pre-registered)
+
+Same recipe from the public Raptor v8 and v5 checkpoints (seeds 8, 5). A sibling is accepted if its ep2 gold-58 is
+≥ 0.912. The clean FT leg becomes the rank-mean of the accepted ftC models if that mean's gold-58 ≥ ftC alone −
+0.002 (otherwise ftC alone stays). Weight in the clean blend unchanged (0.20).
+
 ## Pre-registered blend weights (fixed before any LB read)
 
 - Our R5t leg: 0.10 (rule from phase 2: solo < 0.925 → 0.10).

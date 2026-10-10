@@ -1,6 +1,6 @@
 """Gold-58 check of the OAI-track blend variants from leg predictions (rsna-knee-oai-gold58 + our R5t gold.npy).
 
-usage: python gold_legs.py <gold58_out_dir> <r5t_out_dir>
+usage: python gold_legs.py <gold58_out_dir> <r5t_out_dir> [<ft96_out_dir>]
 
 nartaa's checkpoints were selected on gold-58, so every number that leans on them is optimistic; the paired
 bootstrap of each variant against the A+B parent is what matters, and only as a regression guard.
@@ -61,6 +61,20 @@ def mix(a, b, w):
     return rk((1 - w) * rk(a) + w * rk(b))
 
 
+ft = {}
+if len(sys.argv) > 3:   # FT96 runs: run.json (gold_ids, history) + gold_pred_ep<k>.npy (mirror-TTA, 94 windows)
+    for job in ('ftO', 'ftC'):
+        d = os.path.join(sys.argv[3], job)
+        if not os.path.exists(os.path.join(d, 'run.json')):
+            continue
+        rj = json.load(open(os.path.join(d, 'run.json')))
+        ids = [str(u) for u in rj['gold_ids']]
+        for h in rj['history']:
+            if 'gold_macro' in h:
+                print(f"{job} ep{h['ep']} loss {h['loss']:.4f} gold {h['gold_macro']:.4f} holdout {h.get('holdout_top5ref_macro', float('nan')):.4f}")
+        last = max(h['ep'] for h in rj['history'] if 'gold_macro' in h)
+        ft[job] = pd.DataFrame(np.load(os.path.join(d, f'gold_pred_ep{last}.npy')), index=ids, columns=T).loc[y.index].values
+
 variants = {
     'acc': acc, 'eff': eff, 'reader': reader, 'ours': ours,
     'AB (goodpjw 0.950)': with_reader(acc),
@@ -69,6 +83,12 @@ variants = {
     'A2B + ours 0.10': mix(with_reader(mix(acc, eff, 0.25)), ours, 0.10),
     'AB + ours 0.20': mix(with_reader(acc), ours, 0.20),
 }
+if 'ftO' in ft:
+    variants['ftO'] = ft['ftO']
+    variants['A2+ftO 0.25, B, +ours [ft nb]'] = mix(with_reader(mix(mix(acc, eff, 0.25), ft['ftO'], 0.25)), ours, 0.10)
+    variants['A+ftO 0.25, B'] = with_reader(mix(acc, ft['ftO'], 0.25))
+if 'ftC' in ft:
+    variants['ftC'] = ft['ftC']
 base = variants['AB (goodpjw 0.950)']
 rng = np.random.default_rng(0)
 boots = [rng.integers(0, len(Y), len(Y)) for _ in range(2000)]
@@ -80,4 +100,6 @@ for k, p in variants.items():
     print(f"{k:24s} {np.nanmean(a):.4f} {np.nanmean(a) - np.nanmean(aucs(base)):+.4f} [{np.percentile(d, 2.5):+.4f},{np.percentile(d, 97.5):+.4f}]",
           ' '.join(f'{v:.2f}' for v in a))
 r = lambda a, b: np.mean([pd.Series(a[:, j]).corr(pd.Series(b[:, j]), method='spearman') for j in range(len(T))])
+for job, p in ft.items():
+    print(f"{job}: spearman with acc {r(p, acc):.3f}, with reader {r(p, reader):.3f}, with ours {r(p, ours):.3f}")
 print(f"mean spearman: ours-acc {r(ours, acc):.3f} ours-reader {r(ours, reader):.3f} reader-acc {r(reader, acc):.3f} eff-acc {r(eff, acc):.3f}")

@@ -17,17 +17,20 @@ import torch.nn as nn
 DEFAULT_ARCH = "coatnet_rmlp_2_rw_384.sw_in12k_ft_in1k"
 
 
-def build_backbone(arch: str = DEFAULT_ARCH, pretrained: bool = False) -> nn.Module:
+def build_backbone(arch: str = DEFAULT_ARCH, pretrained: bool = False, img_size: int = 0) -> nn.Module:
     """A timm image backbone returning one pooled feature vector per image.
 
     Conv/attention hybrids (CoAtNet, MaxViT, ConvNeXt) contain "vit" in their names but have
-    no CLS token, so they must take the average-pool path.
+    no CLS token, so they must take the average-pool path. ``img_size`` (0 = the arch default) must match
+    the input for CoAtNet/MaxViT, whose attention is sized at build time (weights load at any size).
     """
     import timm
 
     hybrid = arch.startswith(("maxvit", "maxxvit", "coatnet", "coat_", "convnext"))
     is_vit = (not hybrid) and any(k in arch for k in ("vit", "deit", "dinov2", "eva", "beit"))
     kw = dict(pretrained=pretrained, num_classes=0, in_chans=3)
+    if img_size:
+        kw["img_size"] = img_size
     kw.update(dict(global_pool="token", dynamic_img_size=True) if is_vit else dict(global_pool="avg"))
     return timm.create_model(arch, **kw)
 

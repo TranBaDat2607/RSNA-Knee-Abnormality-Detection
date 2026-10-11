@@ -6,7 +6,7 @@ three-compartment osteoarthritis, effusion, synovitis, Baker's cyst, contusion, 
 from knee MRI studies, scored as macro-averaged ROC AUC across the twelve targets.
 
 Only ~1.3% of training studies carry ground-truth labels; every study carries a free-text
-radiology report instead. The repo has two parts:
+radiology report instead. The repo has four parts:
 
 1. an **LLM-based report labeler** that turns those reports into training targets (the original
    contribution, below);
@@ -18,6 +18,9 @@ radiology report instead. The repo has two parts:
 3. **Phase 2 — our own k-fold models** (`experiments/phase2/`, branch `feat/phase2-own-models`): ConvNeXt-nano
    models trained on report labels, scored alone and as a small leg blended into the public stack. Results in
    [`docs/phase2_notes.md`](docs/phase2_notes.md); how to submit in [`docs/handoff_2026-10-04.md`](docs/handoff_2026-10-04.md).
+4. **Phase 3, endgame** (`experiments/phase2/kernels/{oai-blend,clean-blend,c96-cache,ft96*}`, branch
+   `feat/phase3-endgame`): two submission tracks (public OAI-trained weights vs clean), plus our own CoAtNet
+   fine-tuned on the 96-slice native-384 input. Results in [`docs/phase3_notes.md`](docs/phase3_notes.md).
 
 ## Credit
 
@@ -83,8 +86,32 @@ gold-58 and the LB, and two extra full-data models add +0.002. Our own models ar
 stack alone, so the right use is a small blend weight; by the pre-registered rule (solo < 0.925 → w = 0.10)
 the next blend stays at 0.10 and is only kept if it scores ≥ 0.944.
 
-Standing: team `nammovuivui` is **rank 2,016 of 5,637** at 0.942 (leaderboard downloaded 2026-10-10); the top
-of the board is 0.964.
+### Phase 3: endgame (2026-10-10 / 11)
+
+Since 2026-10-07 every public notebook at ≥ 0.950 uses `nartaa/rsna-knee-publication-swa-weights-20261007`, one
+CoAtNet trained with **OAI external knee MRIs**. The hosts have not ruled on OAI, so final picks are split into an
+**OAI track** (public OAI-trained weights) and a **clean track** (competition data + previously used public weights).
+
+| Submission | Track | What | Gold-58 | Public LB |
+|---|---|---|---:|---:|
+| (public) | OAI | goodpjw2008 notebook: nartaa CoAtNet + 2.5D ConvNeXt reader (parent, reproduced exactly) | 0.9248 | 0.950 |
+| `57051397` | OAI | parent + nartaa 224-crop checkpoint at 0.25 | 0.9275 | **0.950** |
+| `57051394` | OAI | the above + our R5t leg at 0.10 | 0.9280 | 0.949 |
+| `57051391` | clean | community stack + goodpjw reader 0.30 + **our ftC** 0.20 | — | **0.945** (clean best, was 0.942) |
+
+- **ftC** (ours): public clean Raptor v10 CoAtNet fine-tuned 3 epochs on nartaa's 96-slice native-384 input
+  (`rsna_knee.mil.c96`, cached by `rsna-knee-c96-cache`) with teach4 labels, 320 crop, anatomical-mirror aug/TTA.
+  Gold-58 0.921, the best clean single model here (reader 0.915, R5t 0.906); Spearman with the reader 0.89.
+- Rejected, each against a rule fixed before the result: fine-tuning nartaa on teach4 (gold 0.923 → 0.910),
+  64-slice maxspan input, multi-scale TTA on nartaa (views correlate ≥ 0.99), averaging ftC with siblings
+  fine-tuned from v8/v5 (no gain, +40–60 min runtime), and our R5t leg (−0.001 on the LB in both tracks).
+- Small gold-58 gains (+0.003) did not transfer to the LB. Gold-58 is a regression guard, not a selector.
+- Next step, not executed: the teach4 + Claude-Opus-4.5 label mix (0.901 gold agreement vs teach4's 0.896) lifted
+  every fine-tune's first epoch to 0.925–0.927. `ftC5o` passed its replacement bar by 0.0001 (see the notes).
+
+Standing (2026-10-11): team `nammovuivui` is **rank 699 of 5,710** at 0.950. The top-10 % cutoff is 0.950
+(1,035 teams at ≥ 0.950, ties broken by time) and the top of the board is 0.965. Public OAI-weight blends
+plateau at 0.950–0.951. Going further almost certainly needs models trained on OAI ourselves.
 
 ## How the labels were generated
 
@@ -130,8 +157,9 @@ docs/report.md              the 2026-09 study: why the 0.94 stack works, experim
 docs/experiment_ledger.md   every hypothesis, experiment, result and decision rule, in order
 docs/phase2_notes.md        phase 2 study: label work, own k-fold models, A/B results
 docs/handoff_2026-10-04.md  phase 2 state, running kernels, how to submit the solo and blend kernels
+docs/phase3_notes.md        phase 3: OAI landscape, two-track blends, d96 fine-tunes, pre-registered rules, LB results
 docs/requirements.md        competition task description
-experiments/phase2/         Kaggle kernel launchers and analysis scripts for phase 2
+experiments/phase2/         Kaggle kernel launchers and analysis scripts for phases 2 and 3
 EDA_BASELINE_RESULTS.md     summary of the baseline notebook's results
 CLAUDE.md                   working notes (labeling pipeline, Kaggle operations, experiment state)
 environment.yml             conda environment for local development

@@ -1,0 +1,32 @@
+{
+ "id": "tranbadat/rsna-knee-ft96c",
+ "title": "rsna-knee-ft96c",
+ "code_file": "rsna-knee-ft96c.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": true,
+ "enable_tpu": false,
+ "enable_internet": true,
+ "keywords": [],
+ "dataset_sources": [
+  "tranbadat/rsna-knee-code",
+  "dreaddevelopment/rsna-knee-labels",
+  "flight0234/rsna-knee-hybrid-report-labels",
+  "stevenleehans/rsna-knee-llm-report-labels",
+  "yunusgmsoy/rsna-knee-llm-report-labels",
+  "pilkwang/rsna-knee-llm-labels",
+  "dreaddevelopment/raptor-knee-native384",
+  "dreaddevelopment/raptor-knee-maxspan",
+  "dreaddevelopment/raptor-knee-native384dense"
+ ],
+ "kernel_sources": [
+  "tranbadat/rsna-knee-c96-cache"
+ ],
+ "competition_sources": [
+  "rsna-knee-abnormality-detection"
+ ],
+ "model_sources": [],
+ "docker_image": "gcr.io/kaggle-private-byod/python@sha256:2757e0c7d1e0a9cb43da657b97e223c321a98f5014bdf64f44f2f6b083ad2b2f",
+ "machine_shape": "NvidiaTeslaT4"
+}

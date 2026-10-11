@@ -138,8 +138,14 @@ Submitted 2026-10-10 19:35 UTC (Claude submits since 10-11, ≤ ~3/day): `570513
 | (public) | goodpjw notebook = nartaa + reader (parent) | 0.950 | |
 | `57051397` | A2: + nartaa 224 checkpoint 0.25 | **0.950** | 0.000 |
 | `57051394` | A3: A2 + our R5t leg 0.10 | 0.949 | −0.001 |
-| `57051391` | C2 clean: stack + reader 0.30 + ftC 0.20 | pending | |
+| `57051391` | C2 clean: stack + reader 0.30 + ftC 0.20 | **0.945** | clean best (was 0.942; stack + reader public 0.944) |
 
 The gold-58 gains (+0.0027 / +0.0031) did not transfer. Our R5t leg costs ≈ 0.001 again, the same as on the clean
 stack (0.943 → 0.942), so it is retired from both tracks. A1 (R5t-only leg) is not submitted, since both its
 pieces are already answered. Our best is now 0.950 (A2), the public-fork plateau where ≈ 890 teams sit.
+
+## Final-pick candidates (as of 2026-10-11)
+
+- OAI track: `57051397` (A2, 0.950).
+- Clean hedge: `57051391` (C2, 0.945).
+- Standing: rank 699 / 5,710 at 0.950. The top-10 % cutoff is 0.950, with 1,035 teams tied at or above it.

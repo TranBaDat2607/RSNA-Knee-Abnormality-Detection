@@ -260,3 +260,25 @@ OAI final pick. A7 (`57185425`) and C3 (`57186035`) are still grading as of 2026
 | `57186035` | C3: clean C2 with ftC5o replacing ftC | **0.946** | clean final pick (was C2 0.945) |
 
 Final-pick candidates (2026-10-14): OAI `57185288` (A6, 0.956) and clean hedge `57186035` (C3, 0.946).
+
+## 2026-10-14 (evening): new public legs
+
+- heliosli `0-9573-latest-public-dataset-score-in-one-click` (public 0.957): nartaa 384 + nartaa 224 (**one view**, no mirror)
+  at 0.35 of the Raptor slot + R7 (the same bundle, re-published as `heliosli/rsna-knee-r6-frozen-fe055406`), 50/50. It is A6
+  without the 224 mirror view. The gold-58 "A6[r7_plain]" row above used the plain 224 predictions, so it is this recipe: 0.9365.
+- nartaa `rsna-knee-s6fall-weights` (public 0.950 alone, `rsna-knee-s6fall-solo`): heliosli's S6 architecture retrained on
+  4,263 studies with nartaa's JEV-blend report labels, **gold-58 excluded, no OAI**; it uses heliosli's SKM-TEA anatomy model for
+  the knee-centred views, so it goes to the OAI track (as S6 did).
+
+### A10 (OAI, pre-registered): `kernels/oai-957` = heliosli 0.9573 notebook unchanged (`rsna-knee-oai-957`)
+
+Audit: internet off, only `--no-index` installs. Submit if the dev run passes; A10 replaces A6 as the OAI pick only if its
+public score is strictly higher than 0.956.
+
+### s6fall gold-58 diagnostic (`kernels/oai-gold58-s6fall`) and A11 rule (fixed before the run)
+
+nartaa's script runs unchanged as a module through its own `K1_KAGGLE_ROOT` hook, with the gold-58 stand-in as the
+competition folder; only its `prepare_inputs()` + `run_b()` (B = s6fall) run.
+**A11** = A10 + s6fall at 0.3 of the compact slot (compact = 0.7 rank(R7) + 0.3 rank(s6fall); the slot design goodpjw used for
+S6). Built only if (1) gold-58 of A11 ≥ A10's 0.9365, (2) mean Spearman(s6fall, R7) on gold < 0.95, and (3) the measured
+s6fall cost keeps the notebook ≤ 7.5 h on 1,322 studies. A11 replaces the OAI pick only if strictly higher on the public LB.

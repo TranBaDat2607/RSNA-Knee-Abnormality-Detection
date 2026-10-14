@@ -203,3 +203,20 @@ its public score is strictly higher (displayed 3 decimals); on a tie A6 stays (f
 A6 dev run (v1): 3 rows, no NaN, 224 stage ran (25 s), `NOTEBOOK_COMPLETE`. Submitted 2026-10-14 14:21 UTC as `57185288`.
 
 A7 dev run (v1): 3 rows, no NaN; 224, S6 (unscored 0) and reader (3 folds) all ran, `NOTEBOOK_COMPLETE`. Submitted 2026-10-14 14:26 UTC as `57185425`.
+
+### C3 (CLEAN track): ftC5o replaces ftC in clean C2 (rule from ft96c, already passed)
+
+`kernels/clean-c3` = clean-blend v5 with the FT leg glob `ftC/ckpt_ep2.pt` → `ftC5o/ckpt_ep1.pt` (kernel source
+`rsna-knee-ft96 → rsna-knee-ft96c`); weight unchanged at 0.20. Submit if the dev run shows the FT leg ran; C3 replaces
+C2 as the clean pick only if its public score is strictly higher than 0.945.
+
+### gold-58 diagnostic for the compact legs (`kernels/oai-gold58-r7`, `rsna-knee-oai-gold58-r7`)
+
+R7's manifest says `gold_in_training: 0` and `flip_tta: false`; its worker implements `--flip-tta` with the trainer's
+own mirror transform (coronal/axial width flip, sagittal slice reversal; MCL from the plain pass). The kernel runs R7
+plain, R7 + flip TTA and S6 on the 58 gold studies (stand-in root), and records per-study time.
+
+**A8 rule (fixed before the run):** A8 = A6 with `--flip-tta` added to R7's worker args. Built and submitted only if
+(1) gold-58 macro of R7 flip ≥ R7 plain − 0.002, (2) the A6-style gold blend (0.5 × [0.65 nartaa384 + 0.35 nartaa224]
++ 0.5 × R7, ranks) with flip ≥ the same with plain − 0.001, and (3) the measured flip cost projects the full A6
+notebook to ≤ 7.5 h on 1,322 studies. A8 replaces A6 only if its public score is strictly higher.

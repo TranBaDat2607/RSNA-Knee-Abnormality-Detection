@@ -245,3 +245,7 @@ worker), S6 675 s. Flip TTA adds ≈ 4.1 s/study wall ≈ +1.5 h on 1,322 studie
 staged notebook (`kernels/oai-956flip`) is kept unpushed.
 R7 weight in the A6 blend (information only, not used for tuning): 0.3 → 0.9328, 0.5 → 0.9365, 0.6/0.7 → 0.9366,
 0.8 → 0.9348, 1.0 → 0.9312. Flat around 0.5-0.7, so no weight probe is submitted.
+
+Our clean ftC5o (ft96c ep1, gold 0.9242) in the A6 blend, gold-58: Spearman with nartaa 0.931, with R7 0.860 (R7 vs
+nartaa 0.865). A6 + ftC5o at 0.10 / 0.15 / 0.20: 0.9365 / 0.9365 / 0.9373 vs 0.9365 (CI at 0.20: [−0.0025, +0.0042]).
+No measurable gain, and our legs cost ≈ 0.001 on the LB twice before (A3, clean stack), so it is not submitted.

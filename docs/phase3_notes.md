@@ -149,3 +149,8 @@ pieces are already answered. Our best is now 0.950 (A2), the public-fork plateau
 - OAI track: `57051397` (A2, 0.950).
 - Clean hedge: `57051391` (C2, 0.945).
 - Standing: rank 699 / 5,710 at 0.950. The top-10 % cutoff is 0.950, with 1,035 teams tied at or above it.
+
+**A5 result (`57110710`): public 0.954** (+0.004 over A2). It passes the rule (≥ 0.951) and replaces A2 as the OAI
+final pick. Final-pick candidates are now OAI `57110710` (A5, 0.954) and clean hedge `57051391` (C2, 0.945).
+Standing (2026-10-14): rank 1,387 / 5,980 at 0.954. 1,088 teams are above 0.954, the top-10 % cutoff is 0.956,
+and the top of the board is 0.966.

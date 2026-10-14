@@ -42,10 +42,13 @@ small-weight leg.
 
 ### Report labels → DINOv2 baseline (original contribution)
 
-| Label source | Out-of-fold macro AUC (58 held-out annotated studies) |
+| Label source | Public LB |
 |---|---:|
-| Original (rule-based report extractor, Roman Rozen baseline) | 0.809 |
-| **This repo (`gpt-5.4-mini`-labeled targets)** | **0.813** |
+| Original (rule-based report extractor, Roman Rozen baseline, version forked here) | 0.809 |
+| **This repo (`gpt-5.4-mini`-labeled targets)** — submission `55429575` | **0.813** |
+
+The same run's out-of-fold macro AUC on the 58 held-out annotated studies is 0.7675
+(`EDA_BASELINE_RESULTS.md` §3). The baseline notebook has since been updated upstream and now scores 0.894.
 
 ### CoAtNet MIL pipeline (2026-09 study)
 
@@ -86,7 +89,15 @@ gold-58 and the LB, and two extra full-data models add +0.002. Our own models ar
 stack alone, so the right use is a small blend weight; by the pre-registered rule (solo < 0.925 → w = 0.10)
 the next blend stays at 0.10 and is only kept if it scores ≥ 0.944.
 
-### Phase 3: endgame (2026-10-10 / 11)
+### External ensemble notebook (2026-08)
+
+| Submission | What | Public LB |
+|---|---|---:|
+| `55503088` | teammate notebook `tranbadat/rsna-knee-abnormality` (DINOv2 TTA + DINOv3 + RadImageNet, `challenger` blend) | 0.910 |
+| `55523770` | same, `grounded` blend (drops the weights fit on the 3-row dry-run test) | 0.909 |
+| `55569274` | same, per-target weights fit on LLM-labelled OOF | 0.910 |
+
+### Phase 3: endgame (2026-10-10 / 12)
 
 Since 2026-10-07 every public notebook at ≥ 0.950 uses `nartaa/rsna-knee-publication-swa-weights-20261007`, one
 CoAtNet trained with **OAI external knee MRIs**. The hosts have not ruled on OAI, so final picks are split into an
@@ -98,6 +109,7 @@ CoAtNet trained with **OAI external knee MRIs**. The hosts have not ruled on OAI
 | `57051397` | OAI | parent + nartaa 224-crop checkpoint at 0.25 | 0.9275 | **0.950** |
 | `57051394` | OAI | the above + our R5t leg at 0.10 | 0.9280 | 0.949 |
 | `57051391` | clean | community stack + goodpjw reader 0.30 + **our ftC** 0.20 | — | **0.945** (clean best, was 0.942) |
+| `57110710` | OAI | A5: goodpjw 0.954 notebook unchanged (nartaa CoAtNet + heliosli S6 70/30 + reader per finding) | — | **0.954** (best) |
 
 - **ftC** (ours): public clean Raptor v10 CoAtNet fine-tuned 3 epochs on nartaa's 96-slice native-384 input
   (`rsna_knee.mil.c96`, cached by `rsna-knee-c96-cache`) with teach4 labels, 320 crop, anatomical-mirror aug/TTA.
@@ -109,9 +121,15 @@ CoAtNet trained with **OAI external knee MRIs**. The hosts have not ruled on OAI
 - Next step, not executed: the teach4 + Claude-Opus-4.5 label mix (0.901 gold agreement vs teach4's 0.896) lifted
   every fine-tune's first epoch to 0.925–0.927. `ftC5o` passed its replacement bar by 0.0001 (see the notes).
 
-Standing (2026-10-11): team `nammovuivui` is **rank 699 of 5,710** at 0.950. The top-10 % cutoff is 0.950
-(1,035 teams at ≥ 0.950, ties broken by time) and the top of the board is 0.965. Public OAI-weight blends
-plateau at 0.950–0.951. Going further almost certainly needs models trained on OAI ourselves.
+- A5 passed its pre-registered rule (replace A2 as the OAI pick if ≥ 0.951). It is a public notebook run
+  unchanged, with no leg of ours; the S6 leg uses external weights, so it stays in the OAI track.
+
+Final-pick candidates: **OAI `57110710` (A5, 0.954)** and **clean hedge `57051391` (C2, 0.945)**.
+
+Standing (public LB, 2026-10-14): team `nammovuivui` is **rank 1,387 of 5,980** at 0.954. 1,088 teams score
+above 0.954; the top-10 % cutoff is now 0.956 and the top of the board is 0.966. The public plateau moved from
+0.950 to 0.954 on 10-12, when heliosli's S6 weights came back. Going further almost certainly needs models
+trained on OAI ourselves.
 
 ## How the labels were generated
 

@@ -169,3 +169,25 @@ pieces are already answered. Our best is now 0.950 (A2), the public-fork plateau
 final pick. Final-pick candidates are now OAI `57110710` (A5, 0.954) and clean hedge `57051391` (C2, 0.945).
 Standing (2026-10-14): rank 1,387 / 5,980 at 0.954. 1,088 teams are above 0.954, the top-10 % cutoff is 0.956,
 and the top of the board is 0.966.
+
+## 2026-10-14: the public plateau moved to 0.956
+
+- heliosli published R7 (`heliosli/rsna-knee-compact-r7cnxfsss`: ConvNeXt-small, 4 folds, crop 352, knee-joint
+  anchors, **fastMRI auxiliary training**, refitted Effusion/Baker's stackers; code in the same
+  `rsna-orthofoundation-fold0-epoch7-20261004` dataset). nartaa + R7 50/50 rank blend = public 0.956
+  (`heliosli/0-957-latest-dataset-score-in-one-click`). ~25 public notebooks now score 0.956 (search API).
+- varshithakolupuri added nartaa's 224 checkpoint at 0.35 of the Raptor slot (0.956, ranked higher), then gave that
+  checkpoint nartaa's own anatomical mirror TTA (`rsna-0-956-one-free-flip-68-ranks-up`, 0.956, rank 357 → 289).
+- Top public notebook 0.957 (`bliverrigpdoge/r7-raptor-knee-centred-convnext`) = the 0.956 base + a private
+  knee-centred-crop ConvNeXt/EffNetV2 leg at 0.2; the leg's weights are private, a fork gives 0.956.
+- goodpjw's notebook v11/v12 moved to the same base (reader at 1/10 weight; they measured that the reader at full
+  weight no longer adds on R7: 0.956 base + reader → 0.954).
+- R7 uses fastMRI (application-gated) and nartaa uses OAI, so every 0.956 notebook belongs to the OAI track only.
+- Forum (10-14): still no host ruling on OAI (thread 749145 asks for one before the deadline).
+
+### A6 (OAI track, pre-registered before any run)
+
+`kernels/oai-956` = `varshithakolupuri/rsna-0-956-one-free-flip-68-ranks-up` unchanged, as private kernel
+`rsna-knee-oai-956`. Audit: internet off, wheels installed with `--no-index` from attached datasets, the only embedded
+blob is the DICOM fast-read module already audited for A5. Rule: submit if the dev run passes the schema/NaN checks;
+A6 replaces A5 as the OAI final pick if its public score is ≥ 0.955. Our own legs are not added.

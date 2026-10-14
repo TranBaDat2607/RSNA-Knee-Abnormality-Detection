@@ -220,3 +220,5 @@ plain, R7 + flip TTA and S6 on the 58 gold studies (stand-in root), and records 
 (1) gold-58 macro of R7 flip ≥ R7 plain − 0.002, (2) the A6-style gold blend (0.5 × [0.65 nartaa384 + 0.35 nartaa224]
 + 0.5 × R7, ranks) with flip ≥ the same with plain − 0.001, and (3) the measured flip cost projects the full A6
 notebook to ≤ 7.5 h on 1,322 studies. A8 replaces A6 only if its public score is strictly higher.
+
+C3 dev run (v1): FT leg loaded `rsna-knee-ft96c/ftC5o/ckpt_ep1.pt`, blended at 0.2; 3 rows, no NaN. Submitted 2026-10-14 14:45 UTC as `57186035`.

@@ -252,3 +252,11 @@ No measurable gain, and our legs cost ≈ 0.001 on the LB twice before (A3, clea
 
 **A6 result (`57185288`): public 0.956** (+0.002 over A5 0.954). It passes the rule (≥ 0.955) and replaces A5 as the
 OAI final pick. A7 (`57185425`) and C3 (`57186035`) are still grading as of 2026-10-14 19:00 UTC.
+
+| Submission | Variant | Public LB | decision |
+|---|---|---|---|
+| `57185288` | A6: public 0.956 recipe (nartaa 384 + 224 mirror, R7) | **0.956** | OAI final pick (was A5 0.954) |
+| `57185425` | A7: A6 + S6 0.3 + reader 1/10 | 0.956 | tie → A6 stays (rule: strictly higher only) |
+| `57186035` | C3: clean C2 with ftC5o replacing ftC | **0.946** | clean final pick (was C2 0.945) |
+
+Final-pick candidates (2026-10-14): OAI `57185288` (A6, 0.956) and clean hedge `57186035` (C3, 0.946).

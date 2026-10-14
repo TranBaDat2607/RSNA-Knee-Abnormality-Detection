@@ -222,3 +222,26 @@ plain, R7 + flip TTA and S6 on the 58 gold studies (stand-in root), and records 
 notebook to ≤ 7.5 h on 1,322 studies. A8 replaces A6 only if its public score is strictly higher.
 
 C3 dev run (v1): FT leg loaded `rsna-knee-ft96c/ftC5o/ckpt_ep1.pt`, blended at 0.2; 3 rows, no NaN. Submitted 2026-10-14 14:45 UTC as `57186035`.
+
+### gold-58 compact-leg results (`rsna-knee-oai-gold58-r7` v1, `analysis/gold_compact.py`)
+
+| Leg / blend | gold-58 macro | note |
+|---|---|---|
+| nartaa 384 | 0.9229 | selected on gold (optimistic) |
+| nartaa 224 | 0.9150 | |
+| goodpjw reader | 0.9153 | gold never trained |
+| **R7 plain** | **0.9312** | gold never trained; best single leg (Lateral OA 0.884 vs nartaa 0.776, PF OA 0.904 vs 0.860) |
+| R7 flip TTA | 0.9317 | +0.0004 [−0.0025, +0.0035], Spearman with plain 0.998 |
+| S6 | 0.9267 | |
+| A6 blend (R7 plain) | 0.9365 | |
+| A6 blend with R7 flip | 0.9366 | +0.0001 [−0.0018, +0.0019] |
+| A6 + S6 0.3 in compact slot | 0.9351 | −0.0014 [−0.0050, +0.0015] (A7's S6 part; A7 also has the reader) |
+
+Timing on 58 real studies (2×T4, compile included): R7 plain 757 s, R7 flip 996 s (gpu 12.6 → 24.2 s/study per
+worker), S6 675 s. Flip TTA adds ≈ 4.1 s/study wall ≈ +1.5 h on 1,322 studies.
+
+**A8 decision: not submitted.** Rules (1) and (2) pass but the flip pass is a near-copy of the plain pass (ρ 0.998,
++0.0001 in the blend), and +1.5 h puts rule (3) (≤ 7.5 h) at risk; no expected gain for real timeout risk. The
+staged notebook (`kernels/oai-956flip`) is kept unpushed.
+R7 weight in the A6 blend (information only, not used for tuning): 0.3 → 0.9328, 0.5 → 0.9365, 0.6/0.7 → 0.9366,
+0.8 → 0.9348, 1.0 → 0.9312. Flat around 0.5-0.7, so no weight probe is submitted.

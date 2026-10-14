@@ -282,3 +282,24 @@ competition folder; only its `prepare_inputs()` + `run_b()` (B = s6fall) run.
 **A11** = A10 + s6fall at 0.3 of the compact slot (compact = 0.7 rank(R7) + 0.3 rank(s6fall); the slot design goodpjw used for
 S6). Built only if (1) gold-58 of A11 ≥ A10's 0.9365, (2) mean Spearman(s6fall, R7) on gold < 0.95, and (3) the measured
 s6fall cost keeps the notebook ≤ 7.5 h on 1,322 studies. A11 replaces the OAI pick only if strictly higher on the public LB.
+
+A10 v1 submit was refused ("non-versioned dataset heliosli/rsna-knee-r6-frozen-fe055406"). v2 points `C_SLUG` at
+`heliosli/rsna-knee-compact-r7cnxfsss`, which holds the same bundle (`8c7b666e27dc0e8f`, checked by the notebook's own
+manifest + sha256 asserts); nothing else changes.
+
+### s6fall gold-58 result (`rsna-knee-oai-gold58-s6fall` v1, 274 s for 58 studies on 2×T4)
+
+s6fall gold-58 **0.9314** (R7 0.9312). Mean Spearman: s6fall–R7 0.871, s6fall–nartaa 0.879, s6fall–S6 0.866 (R7–nartaa 0.865):
+a third leg as strong as R7 and as far from both legs as they are from each other.
+**A11 (s6fall at 0.3 of the compact slot): 0.9362 vs A10 0.9365 → rule (1) fails, not built.**
+After seeing that, the equal three-way form was computed: final = 2/3 × A10 + 1/3 × rank(s6fall) = 0.9406 (+0.0042,
+CI [−0.0020, +0.0105], 9/12 findings up; s6fall weight 0.20 / 0.25 / 0.33 / 0.40 / 0.50 → 0.9369 / 0.9381 / 0.9406 / 0.9406 /
+0.9401). **This form was chosen after the gold read, so gold does not validate it**; its rationale is structural (three legs of
+equal gold strength and equal pairwise correlation → equal weights), and the LB decides.
+
+### A12 (OAI): `kernels/oai-957s6f` = A10 v2 + s6fall as a third equal leg (`rsna-knee-oai-957s6f`)
+
+nartaa's s6fall script (unchanged, embedded) is loaded as a module after A10's blend; only `prepare_inputs()` + `run_b()` run.
+Final = 2/3 × A10 value + 1/3 × rank(s6fall); s6fall starts only if ≥ 70 min remain and is capped to leave 25 min; any failure
+keeps A10's file; a study s6fall did not score keeps its A10 value; < 90 % scored → A10 kept. Submit if the dev run shows the
+s6fall stage and blend completed. A12 becomes the OAI pick only if its public score is strictly higher than the best of A6/A10.

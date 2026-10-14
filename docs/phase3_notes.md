@@ -199,3 +199,5 @@ A6 replaces A5 as the OAI final pick if its public score is ≥ 0.955. Our own l
 the compact slot and the goodpjw reader at 1/10 of its v6 weights, both time-guarded. Audit as for A6 (internet off,
 `--no-index` wheels, no network calls). Rule: submit if the dev run passes; A7 replaces A6 as the OAI pick only if
 its public score is strictly higher (displayed 3 decimals); on a tie A6 stays (fewer members, less runtime risk).
+
+A6 dev run (v1): 3 rows, no NaN, 224 stage ran (25 s), `NOTEBOOK_COMPLETE`. Submitted 2026-10-14 14:21 UTC as `57185288`.

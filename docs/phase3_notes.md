@@ -249,3 +249,6 @@ R7 weight in the A6 blend (information only, not used for tuning): 0.3 → 0.932
 Our clean ftC5o (ft96c ep1, gold 0.9242) in the A6 blend, gold-58: Spearman with nartaa 0.931, with R7 0.860 (R7 vs
 nartaa 0.865). A6 + ftC5o at 0.10 / 0.15 / 0.20: 0.9365 / 0.9365 / 0.9373 vs 0.9365 (CI at 0.20: [−0.0025, +0.0042]).
 No measurable gain, and our legs cost ≈ 0.001 on the LB twice before (A3, clean stack), so it is not submitted.
+
+**A6 result (`57185288`): public 0.956** (+0.002 over A5 0.954). It passes the rule (≥ 0.955) and replaces A5 as the
+OAI final pick. A7 (`57185425`) and C3 (`57186035`) are still grading as of 2026-10-14 19:00 UTC.

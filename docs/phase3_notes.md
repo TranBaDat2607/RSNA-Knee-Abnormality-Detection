@@ -303,3 +303,5 @@ nartaa's s6fall script (unchanged, embedded) is loaded as a module after A10's b
 Final = 2/3 × A10 value + 1/3 × rank(s6fall); s6fall starts only if ≥ 70 min remain and is capped to leave 25 min; any failure
 keeps A10's file; a study s6fall did not score keeps its A10 value; < 90 % scored → A10 kept. Submit if the dev run shows the
 s6fall stage and blend completed. A12 becomes the OAI pick only if its public score is strictly higher than the best of A6/A10.
+
+A10 v2 and A12 v1 dev runs passed (A12: s6fall scored 3/3 in 64 s, three-way blend written). Submitted 2026-10-14 23:23 UTC: A10 `57197655`, A12 `57197656`.

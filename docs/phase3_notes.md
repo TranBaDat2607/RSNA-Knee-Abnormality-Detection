@@ -191,3 +191,11 @@ and the top of the board is 0.966.
 `rsna-knee-oai-956`. Audit: internet off, wheels installed with `--no-index` from attached datasets, the only embedded
 blob is the DICOM fast-read module already audited for A5. Rule: submit if the dev run passes the schema/NaN checks;
 A6 replaces A5 as the OAI final pick if its public score is ≥ 0.955. Our own legs are not added.
+
+### A7 (OAI track, pre-registered before any run)
+
+`kernels/oai-956s6` = `goodpjw2008/rsna-knee-coatnet-2-5d-convnext-mil-lb-0-954` v12 unchanged (private kernel
+`rsna-knee-oai-956s6`): the A6 base (nartaa 384 + 224 at 0.35 of the Raptor slot, R7) plus heliosli's S6 at 0.3 of
+the compact slot and the goodpjw reader at 1/10 of its v6 weights, both time-guarded. Audit as for A6 (internet off,
+`--no-index` wheels, no network calls). Rule: submit if the dev run passes; A7 replaces A6 as the OAI pick only if
+its public score is strictly higher (displayed 3 decimals); on a tie A6 stays (fewer members, less runtime risk).

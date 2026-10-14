@@ -201,3 +201,5 @@ the compact slot and the goodpjw reader at 1/10 of its v6 weights, both time-gua
 its public score is strictly higher (displayed 3 decimals); on a tie A6 stays (fewer members, less runtime risk).
 
 A6 dev run (v1): 3 rows, no NaN, 224 stage ran (25 s), `NOTEBOOK_COMPLETE`. Submitted 2026-10-14 14:21 UTC as `57185288`.
+
+A7 dev run (v1): 3 rows, no NaN; 224, S6 (unscored 0) and reader (3 folds) all ran, `NOTEBOOK_COMPLETE`. Submitted 2026-10-14 14:26 UTC as `57185425`.

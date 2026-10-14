@@ -150,6 +150,21 @@ pieces are already answered. Our best is now 0.950 (A2), the public-fork plateau
 - Clean hedge: `57051391` (C2, 0.945).
 - Standing: rank 699 / 5,710 at 0.950. The top-10 % cutoff is 0.950, with 1,035 teams tied at or above it.
 
+## 2026-10-12: the public plateau moved to 0.954
+
+- heliosli restored `heliosli/rsna-knee-compact-v1` (S6: ConvNeXt-small, 4 folds, knee-joint anchors, side
+  classifier; code in `heliosli/rsna-orthofoundation-fold0-epoch7-20261004`). 18 public notebooks now score a real
+  0.954 (search API `best_public_score`). All are nartaa (OAI) + S6 rank-blended 70/30, some with goodpjw's reader
+  on top at per-finding weights (0.03-0.35). The S6 leg is external-weights, so it belongs to the OAI track only.
+- OAI forum state (10-12): still no host ruling. NIH has barred NDA access from China, Russia, Iran and others since
+  2025-04-04 (thread 748276), the same uneven-access argument as the KneeCoT ban. The OAI model's author is rank ~182
+  at 0.955; no top-40 team (>= 0.960) has disclosed its data.
+- **A5 (OAI track)** = `goodpjw2008/rsna-knee-coatnet-2-5d-convnext-mil-lb-0-954` unchanged, as private kernel
+  `rsna-knee-oai-954` (`kernels/oai-954`). Its source was audited before the push (embedded base64 = a DICOM reader,
+  embedded heliosli sources, offline wheel installs; no network, no secrets). Rule fixed before the run: submit if the
+  dev run passes schema/NaN checks; it replaces A2 as the OAI final pick if its public score is >= 0.951.
+  Our own legs are not added: every one so far cost ~0.001 on OAI blends.
+
 **A5 result (`57110710`): public 0.954** (+0.004 over A2). It passes the rule (≥ 0.951) and replaces A2 as the OAI
 final pick. Final-pick candidates are now OAI `57110710` (A5, 0.954) and clean hedge `57051391` (C2, 0.945).
 Standing (2026-10-14): rank 1,387 / 5,980 at 0.954. 1,088 teams are above 0.954, the top-10 % cutoff is 0.956,

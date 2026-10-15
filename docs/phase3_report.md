@@ -1,7 +1,7 @@
 # Phase 3 report: endgame, 2026-10-10 to 10-15 (branch `feat/phase3-oai956`)
 
 *This report summarises phase 3. The detailed per-experiment notes, pre-registered rules and raw numbers are in
-[`phase3_notes.md`](phase3_notes.md). The day-by-day record is in [`session_2026-10-14_summary.md`](session_2026-10-14_summary.md).
+[`phase3_notes.md`](phase3_notes.md).
 Scores and standing were read from the Kaggle API on 2026-10-15. Web version (private, share from its page):
 https://claude.ai/artifact/3QnptvC7t5r8VMeev5hR2T*
 

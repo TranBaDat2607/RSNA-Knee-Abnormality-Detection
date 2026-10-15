@@ -33,3 +33,9 @@ data/test_series/
 # OS
 .DS_Store
 Thumbs.db
+
+# Phase 4: local-only outputs (gold-58 kernel outputs hold competition labels; kgkit-generated GPU bundles; forum dumps)
+experiments/phase2/analysis/gold_out/
+experiments/phase2/analysis/disc/
+/kernels/
+experiments/phase4/kernels/oai-a13/*.ipynb

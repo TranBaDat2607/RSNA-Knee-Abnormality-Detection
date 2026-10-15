@@ -305,3 +305,15 @@ keeps A10's file; a study s6fall did not score keeps its A10 value; < 90 % score
 s6fall stage and blend completed. A12 becomes the OAI pick only if its public score is strictly higher than the best of A6/A10.
 
 A10 v2 and A12 v1 dev runs passed (A12: s6fall scored 3/3 in 64 s, three-way blend written). Submitted 2026-10-14 23:23 UTC: A10 `57197655`, A12 `57197656`.
+
+### A10 / A12 results (read 2026-10-15)
+
+| Submission | Variant | gold-58 | Public LB | decision |
+|---|---|---|---|---|
+| `57197655` | A10: heliosli 0.9573 notebook | 0.9365 | 0.956 | tie with A6, so A6 stays (rule: strictly > 0.956) |
+| `57197656` | A12: A10 + s6fall third equal leg | 0.9406 | **0.957** | **OAI final pick** (strictly higher than A6/A10) |
+
+A12's score differs from A10's, so its s6fall stage ran on the hidden test set (the fallback would have reproduced A10's
+file). Standing on 2026-10-15: rank 211 / 6,043 at 0.957. The top-5 % cutoff is 0.957, the top-10 % cutoff is 0.956, and
+the top of the board is 0.967. Final-pick candidates: OAI `57197656` (A12, 0.957), clean hedge `57186035` (C3, 0.946).
+Synthesis of the whole phase: [`phase3_report.md`](phase3_report.md).

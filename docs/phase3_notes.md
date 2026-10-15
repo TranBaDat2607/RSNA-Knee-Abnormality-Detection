@@ -169,3 +169,151 @@ pieces are already answered. Our best is now 0.950 (A2), the public-fork plateau
 final pick. Final-pick candidates are now OAI `57110710` (A5, 0.954) and clean hedge `57051391` (C2, 0.945).
 Standing (2026-10-14): rank 1,387 / 5,980 at 0.954. 1,088 teams are above 0.954, the top-10 % cutoff is 0.956,
 and the top of the board is 0.966.
+
+## 2026-10-14: the public plateau moved to 0.956
+
+- heliosli published R7 (`heliosli/rsna-knee-compact-r7cnxfsss`: ConvNeXt-small, 4 folds, crop 352, knee-joint
+  anchors, **fastMRI auxiliary training**, refitted Effusion/Baker's stackers; code in the same
+  `rsna-orthofoundation-fold0-epoch7-20261004` dataset). nartaa + R7 50/50 rank blend = public 0.956
+  (`heliosli/0-957-latest-dataset-score-in-one-click`). ~25 public notebooks now score 0.956 (search API).
+- varshithakolupuri added nartaa's 224 checkpoint at 0.35 of the Raptor slot (0.956, ranked higher), then gave that
+  checkpoint nartaa's own anatomical mirror TTA (`rsna-0-956-one-free-flip-68-ranks-up`, 0.956, rank 357 → 289).
+- Top public notebook 0.957 (`bliverrigpdoge/r7-raptor-knee-centred-convnext`) = the 0.956 base + a private
+  knee-centred-crop ConvNeXt/EffNetV2 leg at 0.2; the leg's weights are private, a fork gives 0.956.
+- goodpjw's notebook v11/v12 moved to the same base (reader at 1/10 weight; they measured that the reader at full
+  weight no longer adds on R7: 0.956 base + reader → 0.954).
+- R7 uses fastMRI (application-gated) and nartaa uses OAI, so every 0.956 notebook belongs to the OAI track only.
+- Forum (10-14): still no host ruling on OAI (thread 749145 asks for one before the deadline).
+
+### A6 (OAI track, pre-registered before any run)
+
+`kernels/oai-956` = `varshithakolupuri/rsna-0-956-one-free-flip-68-ranks-up` unchanged, as private kernel
+`rsna-knee-oai-956`. Audit: internet off, wheels installed with `--no-index` from attached datasets, the only embedded
+blob is the DICOM fast-read module already audited for A5. Rule: submit if the dev run passes the schema/NaN checks;
+A6 replaces A5 as the OAI final pick if its public score is ≥ 0.955. Our own legs are not added.
+
+### A7 (OAI track, pre-registered before any run)
+
+`kernels/oai-956s6` = `goodpjw2008/rsna-knee-coatnet-2-5d-convnext-mil-lb-0-954` v12 unchanged (private kernel
+`rsna-knee-oai-956s6`): the A6 base (nartaa 384 + 224 at 0.35 of the Raptor slot, R7) plus heliosli's S6 at 0.3 of
+the compact slot and the goodpjw reader at 1/10 of its v6 weights, both time-guarded. Audit as for A6 (internet off,
+`--no-index` wheels, no network calls). Rule: submit if the dev run passes; A7 replaces A6 as the OAI pick only if
+its public score is strictly higher (displayed 3 decimals); on a tie A6 stays (fewer members, less runtime risk).
+
+A6 dev run (v1): 3 rows, no NaN, 224 stage ran (25 s), `NOTEBOOK_COMPLETE`. Submitted 2026-10-14 14:21 UTC as `57185288`.
+
+A7 dev run (v1): 3 rows, no NaN; 224, S6 (unscored 0) and reader (3 folds) all ran, `NOTEBOOK_COMPLETE`. Submitted 2026-10-14 14:26 UTC as `57185425`.
+
+### C3 (CLEAN track): ftC5o replaces ftC in clean C2 (rule from ft96c, already passed)
+
+`kernels/clean-c3` = clean-blend v5 with the FT leg glob `ftC/ckpt_ep2.pt` → `ftC5o/ckpt_ep1.pt` (kernel source
+`rsna-knee-ft96 → rsna-knee-ft96c`); weight unchanged at 0.20. Submit if the dev run shows the FT leg ran; C3 replaces
+C2 as the clean pick only if its public score is strictly higher than 0.945.
+
+### gold-58 diagnostic for the compact legs (`kernels/oai-gold58-r7`, `rsna-knee-oai-gold58-r7`)
+
+R7's manifest says `gold_in_training: 0` and `flip_tta: false`; its worker implements `--flip-tta` with the trainer's
+own mirror transform (coronal/axial width flip, sagittal slice reversal; MCL from the plain pass). The kernel runs R7
+plain, R7 + flip TTA and S6 on the 58 gold studies (stand-in root), and records per-study time.
+
+**A8 rule (fixed before the run):** A8 = A6 with `--flip-tta` added to R7's worker args. Built and submitted only if
+(1) gold-58 macro of R7 flip ≥ R7 plain − 0.002, (2) the A6-style gold blend (0.5 × [0.65 nartaa384 + 0.35 nartaa224]
++ 0.5 × R7, ranks) with flip ≥ the same with plain − 0.001, and (3) the measured flip cost projects the full A6
+notebook to ≤ 7.5 h on 1,322 studies. A8 replaces A6 only if its public score is strictly higher.
+
+C3 dev run (v1): FT leg loaded `rsna-knee-ft96c/ftC5o/ckpt_ep1.pt`, blended at 0.2; 3 rows, no NaN. Submitted 2026-10-14 14:45 UTC as `57186035`.
+
+### gold-58 compact-leg results (`rsna-knee-oai-gold58-r7` v1, `analysis/gold_compact.py`)
+
+| Leg / blend | gold-58 macro | note |
+|---|---|---|
+| nartaa 384 | 0.9229 | selected on gold (optimistic) |
+| nartaa 224 | 0.9150 | |
+| goodpjw reader | 0.9153 | gold never trained |
+| **R7 plain** | **0.9312** | gold never trained; best single leg (Lateral OA 0.884 vs nartaa 0.776, PF OA 0.904 vs 0.860) |
+| R7 flip TTA | 0.9317 | +0.0004 [−0.0025, +0.0035], Spearman with plain 0.998 |
+| S6 | 0.9267 | |
+| A6 blend (R7 plain) | 0.9365 | |
+| A6 blend with R7 flip | 0.9366 | +0.0001 [−0.0018, +0.0019] |
+| A6 + S6 0.3 in compact slot | 0.9351 | −0.0014 [−0.0050, +0.0015] (A7's S6 part; A7 also has the reader) |
+
+Timing on 58 real studies (2×T4, compile included): R7 plain 757 s, R7 flip 996 s (gpu 12.6 → 24.2 s/study per
+worker), S6 675 s. Flip TTA adds ≈ 4.1 s/study wall ≈ +1.5 h on 1,322 studies.
+
+**A8 decision: not submitted.** Rules (1) and (2) pass but the flip pass is a near-copy of the plain pass (ρ 0.998,
++0.0001 in the blend), and +1.5 h puts rule (3) (≤ 7.5 h) at risk; no expected gain for real timeout risk. The
+staged notebook (`kernels/oai-956flip`) is kept unpushed.
+R7 weight in the A6 blend (information only, not used for tuning): 0.3 → 0.9328, 0.5 → 0.9365, 0.6/0.7 → 0.9366,
+0.8 → 0.9348, 1.0 → 0.9312. Flat around 0.5-0.7, so no weight probe is submitted.
+
+Our clean ftC5o (ft96c ep1, gold 0.9242) in the A6 blend, gold-58: Spearman with nartaa 0.931, with R7 0.860 (R7 vs
+nartaa 0.865). A6 + ftC5o at 0.10 / 0.15 / 0.20: 0.9365 / 0.9365 / 0.9373 vs 0.9365 (CI at 0.20: [−0.0025, +0.0042]).
+No measurable gain, and our legs cost ≈ 0.001 on the LB twice before (A3, clean stack), so it is not submitted.
+
+**A6 result (`57185288`): public 0.956** (+0.002 over A5 0.954). It passes the rule (≥ 0.955) and replaces A5 as the
+OAI final pick. A7 (`57185425`) and C3 (`57186035`) are still grading as of 2026-10-14 19:00 UTC.
+
+| Submission | Variant | Public LB | decision |
+|---|---|---|---|
+| `57185288` | A6: public 0.956 recipe (nartaa 384 + 224 mirror, R7) | **0.956** | OAI final pick (was A5 0.954) |
+| `57185425` | A7: A6 + S6 0.3 + reader 1/10 | 0.956 | tie → A6 stays (rule: strictly higher only) |
+| `57186035` | C3: clean C2 with ftC5o replacing ftC | **0.946** | clean final pick (was C2 0.945) |
+
+Final-pick candidates (2026-10-14): OAI `57185288` (A6, 0.956) and clean hedge `57186035` (C3, 0.946).
+
+## 2026-10-14 (evening): new public legs
+
+- heliosli `0-9573-latest-public-dataset-score-in-one-click` (public 0.957): nartaa 384 + nartaa 224 (**one view**, no mirror)
+  at 0.35 of the Raptor slot + R7 (the same bundle, re-published as `heliosli/rsna-knee-r6-frozen-fe055406`), 50/50. It is A6
+  without the 224 mirror view. The gold-58 "A6[r7_plain]" row above used the plain 224 predictions, so it is this recipe: 0.9365.
+- nartaa `rsna-knee-s6fall-weights` (public 0.950 alone, `rsna-knee-s6fall-solo`): heliosli's S6 architecture retrained on
+  4,263 studies with nartaa's JEV-blend report labels, **gold-58 excluded, no OAI**; it uses heliosli's SKM-TEA anatomy model for
+  the knee-centred views, so it goes to the OAI track (as S6 did).
+
+### A10 (OAI, pre-registered): `kernels/oai-957` = heliosli 0.9573 notebook unchanged (`rsna-knee-oai-957`)
+
+Audit: internet off, only `--no-index` installs. Submit if the dev run passes; A10 replaces A6 as the OAI pick only if its
+public score is strictly higher than 0.956.
+
+### s6fall gold-58 diagnostic (`kernels/oai-gold58-s6fall`) and A11 rule (fixed before the run)
+
+nartaa's script runs unchanged as a module through its own `K1_KAGGLE_ROOT` hook, with the gold-58 stand-in as the
+competition folder; only its `prepare_inputs()` + `run_b()` (B = s6fall) run.
+**A11** = A10 + s6fall at 0.3 of the compact slot (compact = 0.7 rank(R7) + 0.3 rank(s6fall); the slot design goodpjw used for
+S6). Built only if (1) gold-58 of A11 ≥ A10's 0.9365, (2) mean Spearman(s6fall, R7) on gold < 0.95, and (3) the measured
+s6fall cost keeps the notebook ≤ 7.5 h on 1,322 studies. A11 replaces the OAI pick only if strictly higher on the public LB.
+
+A10 v1 submit was refused ("non-versioned dataset heliosli/rsna-knee-r6-frozen-fe055406"). v2 points `C_SLUG` at
+`heliosli/rsna-knee-compact-r7cnxfsss`, which holds the same bundle (`8c7b666e27dc0e8f`, checked by the notebook's own
+manifest + sha256 asserts); nothing else changes.
+
+### s6fall gold-58 result (`rsna-knee-oai-gold58-s6fall` v1, 274 s for 58 studies on 2×T4)
+
+s6fall gold-58 **0.9314** (R7 0.9312). Mean Spearman: s6fall–R7 0.871, s6fall–nartaa 0.879, s6fall–S6 0.866 (R7–nartaa 0.865):
+a third leg as strong as R7 and as far from both legs as they are from each other.
+**A11 (s6fall at 0.3 of the compact slot): 0.9362 vs A10 0.9365 → rule (1) fails, not built.**
+After seeing that, the equal three-way form was computed: final = 2/3 × A10 + 1/3 × rank(s6fall) = 0.9406 (+0.0042,
+CI [−0.0020, +0.0105], 9/12 findings up; s6fall weight 0.20 / 0.25 / 0.33 / 0.40 / 0.50 → 0.9369 / 0.9381 / 0.9406 / 0.9406 /
+0.9401). **This form was chosen after the gold read, so gold does not validate it**; its rationale is structural (three legs of
+equal gold strength and equal pairwise correlation → equal weights), and the LB decides.
+
+### A12 (OAI): `kernels/oai-957s6f` = A10 v2 + s6fall as a third equal leg (`rsna-knee-oai-957s6f`)
+
+nartaa's s6fall script (unchanged, embedded) is loaded as a module after A10's blend; only `prepare_inputs()` + `run_b()` run.
+Final = 2/3 × A10 value + 1/3 × rank(s6fall); s6fall starts only if ≥ 70 min remain and is capped to leave 25 min; any failure
+keeps A10's file; a study s6fall did not score keeps its A10 value; < 90 % scored → A10 kept. Submit if the dev run shows the
+s6fall stage and blend completed. A12 becomes the OAI pick only if its public score is strictly higher than the best of A6/A10.
+
+A10 v2 and A12 v1 dev runs passed (A12: s6fall scored 3/3 in 64 s, three-way blend written). Submitted 2026-10-14 23:23 UTC: A10 `57197655`, A12 `57197656`.
+
+### A10 / A12 results (read 2026-10-15)
+
+| Submission | Variant | gold-58 | Public LB | decision |
+|---|---|---|---|---|
+| `57197655` | A10: heliosli 0.9573 notebook | 0.9365 | 0.956 | tie with A6, so A6 stays (rule: strictly > 0.956) |
+| `57197656` | A12: A10 + s6fall third equal leg | 0.9406 | **0.957** | **OAI final pick** (strictly higher than A6/A10) |
+
+A12's score differs from A10's, so its s6fall stage ran on the hidden test set (the fallback would have reproduced A10's
+file). Standing on 2026-10-15: rank 211 / 6,043 at 0.957. The top-5 % cutoff is 0.957, the top-10 % cutoff is 0.956, and
+the top of the board is 0.967. Final-pick candidates: OAI `57197656` (A12, 0.957), clean hedge `57186035` (C3, 0.946).
+Synthesis of the whole phase: [`phase3_report.md`](phase3_report.md).

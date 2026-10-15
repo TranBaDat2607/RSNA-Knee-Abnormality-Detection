@@ -31,6 +31,21 @@ Backlog: `reports/backlog.md` (`python -m kgkit backlog list`).
 nartaa 384 ≈ 45 min, nartaa 224 ≈ 20 min, R7 ≈ 3.5–4.5 h (606 windows/study), s6fall ≈ 1.5 h → A12 ≈ 6.5–8 h of 9 h.
 A new leg must therefore cost ≲ 30 min, or ride inside an existing pass.
 
+## Final picks after the host statement (backlog #2; evidence for the user, who ticks the picks)
+
+The 10-10 plan was one OAI-track pick (A12) plus a clean hedge (C3, public 0.946). The host statement of 10-14 changes
+that hedge's value:
+
+- OAI registration (login.gov plus the NDA data-use terms, "Institutional Approval Required: No") matches "registration and
+  acknowledgement of licensing terms", which the hosts call clearly allowed. The open points are NIH's country blocks and
+  fastMRI/SKM-TEA's application forms. Hosts will not rule dataset by dataset and ask teams to disclose.
+- We use only **public weights** that other teams trained. We never touched OAI, fastMRI or SKM-TEA data.
+- C3 sits 0.011 below A12 and 0.010 below today's bronze cutoff (0.956). It can only matter if an OAI ban applied to
+  public-weight users across the whole board (about 1,000 teams), and that ban would also remove most of the teams around us.
+- **Recommendation:** two OAI-track picks: A12 plus the best different OAI-track submission (A13 if it is strictly above
+  0.957, otherwise A6 or A10 at 0.956, the less-tuned form). Keep C3 only if the user still wants the 10-10 hedge. This
+  remains the user's decision.
+
 ## S6T: heliosli's S6 recipe retrained on our labels (pre-registered 2026-10-15, before any training or gold read)
 
 **Why.** s6fall (S6 recipe, nartaa's labels) added +0.001 as an equal third leg. A label change alone gave
@@ -51,6 +66,28 @@ spatial attention, 64 train windows, batch 2, lr 1e-4 / head 1e-3, wd 0.05, aug 
 Two seeds (7 and 8), one per T4; the leg is the mean of the seeds that finish (compact_infer group mean).
 Epochs: 16 if the measured step time fits 11.5 h, otherwise the largest count that fits (decided from the dev run's
 step time, not from any score).
+
+**Dev runs (2026-10-15).** Cache dev (12 studies, CPU): 0 errors, 641 rows/study, 61 MB/study raw (265 GB for the pool),
+73 s/study/worker with the SKM-TEA V-Net on CPU. The shards therefore run on GPU kernels and store rows as JPEG q90
+(13.6 MB/study, mean |error| 1.1 grey levels; 4 shards < 20 GB each). Trainer dev (`kgkit gpu build/push`, 12 studies,
+1 epoch, both seeds): exit 0, models saved, peak GPU memory 6.4 GB of 15 GB. A 12-study epoch cannot time a full
+epoch. **Epoch rule, amended before any score:** keep 16 epochs. If they do not fit one 12 h session, the run stops
+at an epoch boundary with its checkpoint and resumes in a second session (the cosine schedule spans the 16 epochs).
+
+**Cache shards (GPU kernels `rsna-knee-s6t-cache-s0..s3`), all 4,348 studies, 0 errors:**
+
+| shard | studies | rows | JPEG GB | minutes |
+|---|---|---|---|---|
+| s0 | 1,028 | 605,643 | 11.8 | 58 |
+| s1 | 1,135 | 666,721 | 13.1 | 83 |
+| s2 | 1,118 | 668,886 | 13.1 | 80 |
+| s3 | 1,067 | 640,396 | 12.5 | 63 |
+
+About 5 GPU-h in total (two kernels at a time).
+
+**Training run `tranbadat/s6t-train` v1** (`kgkit gpu build/push`, 2×T4, both seeds, 12 h cap), pushed 2026-10-15
+19:32 UTC. `kgkit gpu push` first refused it, because finished cache kernels were still reserved at 12 h each
+(UAT #11). The live quota (13.67 h) covered the cap, so it went out with `--force`.
 
 **Gate (all must hold; read once, after training).**
 1. Leg gold-58 macro AUC ≥ 0.925 (both public S6-recipe models are ≥ 0.9267).

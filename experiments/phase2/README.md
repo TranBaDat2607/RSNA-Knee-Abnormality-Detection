@@ -21,6 +21,7 @@ Each `kernels/<name>/` folder is a Kaggle script kernel: `kernel-metadata.json` 
 | `r4a/b/c` | `rsna-knee-r4a/b/c` | R4: R3 recipe on heavy-OOF `targets_r4` | running |
 | `ours-solo-r4` | `rsna-knee-ours-solo` (next version) | R4 alone on the test set | pending |
 | `r5ta/b/c` | `rsna-knee-r5ta/b/c` | R5t control: R3 recipe on `teach4.csv` only | running |
+| `clean-submit` | `rsna-knee-clean-submit` v1 | E8 clean baseline: public Raptor v5/v10/v8 + residual-gated CoAtNet 0.4 (entry script `scripts/kaggle_submit.py`) | submission 56184308: **0.939** |
 | `tpu-xla-ab` | (not run) | the same A/B on TPU v5e-8 — the TPU queue was hours long, GPU was used instead | — |
 
 `analysis/` (run locally; paths point at the session scratchpad where kernel outputs were downloaded):

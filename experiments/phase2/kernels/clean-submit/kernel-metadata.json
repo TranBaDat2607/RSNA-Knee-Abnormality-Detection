@@ -1,0 +1,30 @@
+{
+  "id": "tranbadat/rsna-knee-clean-submit",
+  "id_no": 134073240,
+  "title": "rsna-knee-clean-submit",
+  "code_file": "rsna-knee-clean-submit.ipynb",
+  "language": "python",
+  "kernel_type": "notebook",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": false,
+  "keywords": [
+    "gpu"
+  ],
+  "dataset_sources": [
+    "dreaddevelopment/raptor-knee-maxspan",
+    "dreaddevelopment/raptor-knee-native384",
+    "dreaddevelopment/raptor-knee-native384dense",
+    "mattiaangeli/opencv-python-headless-4120088-x86",
+    "mattiaangeli/rsna-knee-coat-resgated-ep10-top3",
+    "tranbadat/rsna-knee-code"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [
+    "rsna-knee-abnormality-detection"
+  ],
+  "model_sources": [],
+  "docker_image": "gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461",
+  "machine_shape": "NvidiaTeslaT4"
+}

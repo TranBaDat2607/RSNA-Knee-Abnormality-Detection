@@ -160,3 +160,23 @@ studies (stand-in root), with per-study time. **Rules, read once:**
    A14 ≤ 8.5 h on 1,322 studies, else plain). Built only if R6 gold ≥ 0.925 and A14 gold ≥ A12 − 0.003. It is an LB test
    of a same-family swap: expected gain about +0.0003 (heliosli's 2-leg numbers). **A14 replaces A12 only if public is
    strictly above 0.957.** S6T keeps priority on runtime: if both go in, R6 drops to plain.
+
+**R6 gold-58 result (`rsna-knee-r6-gold58` v1, 12:16–12:46 UTC, `analysis/r6_gate.py`, read once):**
+
+| | gold-58 macro | ρ raptor | ρ R7 | ρ s6fall | GPU s/study/worker |
+|---|---|---|---|---|---|
+| R7 plain (phase 3) | 0.9312 | 0.867 | 1 | 0.871 | 12.6 |
+| **R6 plain** | **0.9371** | 0.873 | **0.980** | 0.878 | 12.3 |
+| R6 flip | 0.9366 | 0.874 | 0.979 | 0.879 | 23.7 |
+| A12 | 0.9404 | | | | |
+| A14 fourth leg (3/4 A12 + 1/4 R6) | 0.9399 (−0.0006) | | | | |
+| A14 swap (R7 → R6) | 0.9401 (−0.0003) | | | | |
+
+R6 is a stronger R7 (+0.006 single leg: Synovitis 0.859 vs 0.814, Baker's 0.969 vs 0.942, Medial Meniscus 0.971 vs 0.958;
+weaker on Lateral Meniscus/OA and Fracture) but the same family (ρ 0.98). Rule 1 fails (1b); **rule 2 passes → A14 = swap**.
+Plain vs flip: ρ 0.998, flip costs 2× GPU (+≈1.2–1.5 h on 1,322 studies). With S6T's ≈1.7 h, A13 + A14 would project to
+≈8.0 h against the 8.5 h cap, and the rule makes R6 plain whenever S6T joins. **A14 therefore uses R6 plain**, so A14's
+public score is also the base that A13 builds on. Compute time is unchanged from A12 (R6 and R7 have the same geometry and cost).
+
+A14 (`kernels/oai-a14`, `build.py <A12 nb> plain`): only the compact cell changes (bundle id, dataset, `FLIP_TTA = False`).
+The dev run on the 3-row test was pushed at 12:47 UTC on this week's last 0.25 GPU-h.

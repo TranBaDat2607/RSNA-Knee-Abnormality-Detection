@@ -134,3 +134,29 @@ for another leg of ≤ 2–3 h.
 **Form (fixed now, not tuned).** A13 = four equal legs: final = 3/4 × A12 value + 1/4 × rank(S6T), inside A12's
 time guard (any failure, timeout or < 90 % coverage keeps A12's file). Submit A13 if the gate holds and the dev run on
 the 3-row test passes. **A13 replaces A12 as the OAI pick only if its public score is strictly above 0.957.**
+
+## 2026-10-16: the board moved; heliosli's R6 (pre-registered before any R6 run or read)
+
+Leaderboard 12:30 UTC (6,084 teams): rank 22 = 0.963, rank 101 = 0.959, 416 teams ≥ 0.958, 764 ≥ 0.957. We are rank
+517 at 0.957. Silver (top 5 % ≈ 304) now needs 0.958, and the bronze line (top 10 % ≈ 608) is inside the 0.957 tie block.
+
+`watch_public.py`: two new public 0.958 notebooks (heliosli `blend-mine-in-private-lb-luck-to-all-upvoters`, goodpjw v26).
+Both use nartaa 384 + 224 plus heliosli's **R6** (bundle `fe055406fad6a12f`, 4 folds, `gold_in_training 0`, flip TTA) in
+the compact slot, plus per-finding Raptor weights (Synovitis 0.8, Lateral OA 0.2, PF OA 0.6, Baker's 0.35). goodpjw's code
+carries a single-class `PROBE_CLASS` switch, so those weights were most likely read off the public LB. heliosli's 2-leg
+history: R7 0.9573 → R6+flip 0.9576 → per-finding weights 0.958. The R6 stage is A12's R7 stage with three lines changed
+(bundle id, dataset `heliosli/rsna-knee-r6-frozen-fe055406-w1`, `FLIP_TTA = True`). Same code, so A12's audit covers it.
+R6 and R7 share size 384 / crop 352 / views v4 / stride 1 and the trainer md5, but R6 adopts its own Effusion fluid and
+Baker's state stackers. bliverrigpdoge's "knee-centred ConvNeXt" leg (0.957) reads a private dataset: not usable.
+We were never able to test R6 itself: in phase 3 the `rsna-knee-r6-frozen-fe055406` dataset already held R7.
+
+**Per-finding weights: not adopted.** They are public-LB fits on 5 findings. Our rule is no weight tuning on gold or LB.
+
+**R6 gold-58 diagnostic (`kernels/r6-gold58`, expiring quota of this week).** R6 plain, then R6 + flip, on the 58 gold
+studies (stand-in root), with per-study time. **Rules, read once:**
+1. *Fourth leg* (same gate as S6T): R6 (flip) gold ≥ 0.925, mean Spearman ≤ 0.90 vs each of raptor, R7 and s6fall,
+   A14 = 3/4 × A12 + 1/4 × rank(R6) ≥ A12 − 0.003, and runtime fits.
+2. *Otherwise a swap* (R6 is the R7 family): A14 = A12 with R7 replaced by R6 (the flip form if its measured cost keeps A13 +
+   A14 ≤ 8.5 h on 1,322 studies, else plain). Built only if R6 gold ≥ 0.925 and A14 gold ≥ A12 − 0.003. It is an LB test
+   of a same-family swap: expected gain about +0.0003 (heliosli's 2-leg numbers). **A14 replaces A12 only if public is
+   strictly above 0.957.** S6T keeps priority on runtime: if both go in, R6 drops to plain.

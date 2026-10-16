@@ -183,6 +183,11 @@ The dev run on the 3-row test was pushed at 12:47 UTC on this week's last 0.25 G
 **Dev run v1 passed** (532 s): Raptor 384/224, R6 (`fe055406-w1`, flip off, 3/3 scored, 0 fallback), s6fall 3/3,
 three-way blend written, `kgkit validate` OK. **Submitted 2026-10-16 12:58 UTC as `57269763` (ledger `0011_a14`).**
 
-**Base for A13 (fixed now, before A14's score):** if A14 scores strictly above 0.957, A13 = `oai-a13/build.py <A14 nb> 2`.
+**A14 result: public 0.957** (`57269763`, PENDING 12:58 → COMPLETE by 17:14 UTC, so ≤ 4.3 h on the hidden test). It ties
+A12 → **A12 stays the OAI pick** (rule: strictly above 0.957), and A13 is built on A12. A14 counts as the "different
+OAI-track" candidate at 0.957 for the final-pick table. The same-family swap gave nothing measurable on the LB, as the
+phase-3 statistics predicted (R6 is a stronger R7 on gold-58 but ρ 0.98).
+
+**Base for A13 (fixed before A14's score):** if A14 scores strictly above 0.957, A13 = `oai-a13/build.py <A14 nb> 2`.
 Otherwise it is built on A12 as planned. The A13 builder runs on the A14 notebook unchanged (tested: 884 KB, R6 bundle kept).
 A13's metadata attaches both the R7 and R6 datasets, so it works on either base.

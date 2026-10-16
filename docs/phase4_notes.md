@@ -180,3 +180,5 @@ public score is also the base that A13 builds on. Compute time is unchanged from
 
 A14 (`kernels/oai-a14`, `build.py <A12 nb> plain`): only the compact cell changes (bundle id, dataset, `FLIP_TTA = False`).
 The dev run on the 3-row test was pushed at 12:47 UTC on this week's last 0.25 GPU-h.
+**Dev run v1 passed** (532 s): Raptor 384/224, R6 (`fe055406-w1`, flip off, 3/3 scored, 0 fallback), s6fall 3/3,
+three-way blend written, `kgkit validate` OK. **Submitted 2026-10-16 12:58 UTC as `57269763` (ledger `0011_a14`).**

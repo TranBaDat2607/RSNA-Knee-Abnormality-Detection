@@ -3,7 +3,7 @@
 usage: python watch_public.py [our_best=0.957] [--all]
 
 Uses the Kaggle search API (kernel_document.best_public_score), because `kgkit kernels top` prints no score
-(UAT issue #9). Prints new candidates (score >= our best, updated in the last 3 days) to audit and fork.
+(UAT issue TranBaDat2607/claude-code-kaggle-grandmaster#14). Prints new candidates (score >= our best, updated in the last 3 days) to audit and fork.
 """
 import sys, time
 from datetime import datetime, timedelta, timezone

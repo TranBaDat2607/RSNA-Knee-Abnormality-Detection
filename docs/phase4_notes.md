@@ -23,7 +23,7 @@ Backlog: `reports/backlog.md` (`python -m kgkit backlog list`).
 - **Forum (thread 735304):** clean single models at public 0.953–0.959 (2.5D ConvNeXt-T 5-fold 0.959, ResNet-50 0.954,
   DINOv2 0.952); the lever they name is OOF pseudo-labels mixed into report labels. nartaa (thread 749359) retrained
   heliosli's S6 on their own labels: fold-0 model 0.948, all-data model 0.950 (= s6fall).
-- `kgkit discussions` cannot read an active competition's forum (Meta Kaggle hides `ForumId`): UAT issue #9. Threads
+- `kgkit discussions` cannot read an active competition's forum (Meta Kaggle hides `ForumId`): UAT issue TranBaDat2607/claude-code-kaggle-grandmaster#14. Threads
   were read through the Kaggle search API instead (`experiments/phase2/analysis/topic.py`).
 
 ### Runtime budget of A12 on the hidden test (estimated from the gold-58 logs, 2×T4, 1,322 studies)
@@ -87,7 +87,7 @@ About 5 GPU-h in total (two kernels at a time).
 
 **Training run `tranbadat/s6t-train` v1** (`kgkit gpu build/push`, 2×T4, both seeds, 12 h cap), pushed 2026-10-15
 19:32 UTC. `kgkit gpu push` first refused it, because finished cache kernels were still reserved at 12 h each
-(UAT #11). The live quota (13.67 h) covered the cap, so it went out with `--force`.
+(UAT TranBaDat2607/claude-code-kaggle-grandmaster#16). The live quota (13.67 h) covered the cap, so it went out with `--force`.
 
 **Gate (all must hold; read once, after training).**
 1. Leg gold-58 macro AUC ≥ 0.925 (both public S6-recipe models are ≥ 0.9267).

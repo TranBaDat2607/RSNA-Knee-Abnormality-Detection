@@ -95,6 +95,10 @@ s7 0.534 → 0.431 and s8 0.536 → 0.429 (s6fall at the same epoch: 0.552 → 0
 8 epochs run in two resume sessions: **2a** now, on the 3.24 h of this week's quota (≈ 2 epochs), and **2b** after
 the 10-17 00:00 UTC reset (≈ 6 epochs, ≈ 8 h).
 
+**Session 2a (`s6t-r1-train`, 2.51 GPU-h):** both seeds resumed after epoch 7 and trained epochs 8–9 (loss s7
+0.4250 → 0.4187, s8 0.4229 → 0.4170), then stopped with epoch-9 checkpoints. Epochs 10–15 remain: on TPU if
+`s6t-tpu-train` starts first, otherwise GPU session 2b (`s6t-r2-train`, built, pushed right after the 10-17 reset).
+
 **TPU path (2026-10-16, GPU quota spent, TPU 20 h unused).** `s6t_train.py` now has a TPU mode (`S6T_XLA=1`): one
 seed per v5e chip (PJRT `TPU_VISIBLE_CHIPS`), bf16 autocast, static shapes (W padded to 64, all B×W windows through the
 encoder, crop on CPU), `mark_step` per optimiser step, `xm.save` checkpoints, and torch_xla's reentrant checkpoint in

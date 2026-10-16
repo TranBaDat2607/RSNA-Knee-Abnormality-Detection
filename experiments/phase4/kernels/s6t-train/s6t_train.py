@@ -181,6 +181,80 @@ def patch(src):
     return src
 
 
+XLA_HELPERS = '''
+
+def _xla_dev():
+    import torch_xla.core.xla_model as xm
+    try:                                   # XLA-safe gradient checkpointing for timm (optimisation barriers, no CSE):
+        import torch.utils.checkpoint as _tc   # timm's checkpoint_seq calls torch.utils.checkpoint.checkpoint(..., use_reentrant=False),
+        import torch_xla.utils.checkpoint as _xc   # whose non-reentrant path fails on XLA ("module 'torch' has no attribute 'xla'")
+
+        def _xla_ckpt(function, *args, use_reentrant=None, **kwargs):
+            return _xc.checkpoint(function, *args, use_reentrant=True, **kwargs)
+        _tc.checkpoint = _xla_ckpt
+    except Exception as _e:
+        print("S6T_XLA: checkpoint not redirected:", repr(_e)[:200], flush=True)
+    return xm.xla_device()
+
+
+def _mark_step():
+    import torch_xla.core.xla_model as xm
+    xm.mark_step()
+
+
+def _xsave(obj, path):
+    import torch_xla.core.xla_model as xm
+    xm.save(obj, path)
+
+'''
+
+
+def patch_xla(src):
+    """TPU (torch_xla, one chip per process) on top of patch(): bf16 autocast (no GradScaler), static shapes, crop on CPU,
+    mark_step per optimiser step, loss summed on device, xm.save checkpoints. ConvNeXt has no BatchNorm and the head gives
+    padded windows -inf attention, so running all B x W windows through the encoder leaves every real window's maths unchanged."""
+    src = sub_once(src, "C = len(LABELS)\n", "C = len(LABELS)\n" + XLA_HELPERS)
+    src = sub_once(src, 'torch.device("cpu") if a.check_targets else torch.device("cuda")',
+                   'torch.device("cpu") if a.check_targets else _xla_dev()')
+    n = src.count('torch.autocast("cuda", dtype=torch.float16)')
+    assert n == 3, n
+    src = src.replace('torch.autocast("cuda", dtype=torch.float16)', 'torch.autocast("xla", dtype=torch.bfloat16)')
+    src = sub_once(src, 'scaler = torch.amp.GradScaler("cuda")', 'scaler = torch.amp.GradScaler("cuda", enabled=False)')
+    n = src.count(".to(dev).to(memory_format=torch.channels_last)")
+    assert n == 2, n
+    src = src.replace(".to(dev).to(memory_format=torch.channels_last)", ".to(dev)")
+    src = sub_once(src, "xs = ((xs - self.mean) / self.std).contiguous(memory_format=torch.channels_last)",
+                   "xs = ((xs - self.mean) / self.std).contiguous()")
+    src = sub_once(src, "z, sl, bl = model(augment(img.to(dev, non_blocking=True), gen), meta.to(dev), mask.to(dev), return_aux=True)",
+                   "z, sl, bl = model(augment(img, gen).to(dev), meta.to(dev), mask.to(dev), return_aux=True)")
+    src = sub_once(src, "                    sched.step()\n", "                    sched.step()\n                    _mark_step()\n")
+    src = sub_once(src, "                    tot += float(loss.detach()) * len(idx)\n", "                    tot = tot + loss.detach() * len(idx)\n")
+    src = sub_once(src, "                log.append(round(tot / max(1, n), 5))\n", "                log.append(round(float(tot) / max(1, n), 5))\n")
+    src = sub_once(src, '                torch.cuda.set_rng_state_all(ck["cuda_rng"])\n',
+                   '                if torch.cuda.is_available() and ck.get("cuda_rng"):\n'
+                   '                    torch.cuda.set_rng_state_all(ck["cuda_rng"])\n')
+    src = sub_once(src, '"cuda_rng": torch.cuda.get_rng_state_all()}', '"cuda_rng": torch.cuda.get_rng_state_all() if torch.cuda.is_available() else []}')
+    src = sub_once(src, '                    torch.save({"epoch": ep,', '                    _xsave({"epoch": ep,')
+    src = sub_once(src, "        x = img[mask]                                               # only real windows go through the encoder\n",
+                   "        x = img.flatten(0, 1)                                       # [S6T XLA] all B*W windows: static shapes\n")
+    n = src.count("            t[mask] = f\n")
+    assert n == 2, n
+    src = src.replace("            t[mask] = f\n", "            t = f.reshape(t.shape)\n")
+    src = sub_once(src, "    return (loss.sum(0)[ok] / den[ok]).mean()\n",
+                   "    return ((loss.sum(0) / den.clamp_min(1e-12)) * ok).sum() / ok.sum().clamp_min(1)\n")
+    src = sub_once(src, "    W = max(len(b[0]) for b in batch)\n",
+                   "    W = max(int(os.environ.get('S6T_PAD_W', '0')), max(len(b[0]) for b in batch))\n")
+    return src
+
+
+def tpu_env(chip):
+    """PJRT: this process sees one TPU chip only (several independent processes on one TPU VM)."""
+    port = 8476 + chip
+    return {"PJRT_DEVICE": "TPU", "TPU_VISIBLE_CHIPS": str(chip), "TPU_VISIBLE_DEVICES": str(chip),
+            "TPU_PROCESS_BOUNDS": "1,1,1", "TPU_CHIPS_PER_PROCESS_BOUNDS": "1,1,1", "TPU_PROCESS_PORT": str(port),
+            "TPU_PROCESS_ADDRESSES": "localhost:%d" % port, "CLOUD_TPU_TASK_ID": "0", "S6T_PAD_W": "64"}
+
+
 def targets(path):
     """teach4opus soft labels as the E_prior arm's 'prior' column; gold studies and gold-report duplicates excluded."""
     code = find_mount(CODE_SLUG, "teach4opus.csv")
@@ -208,9 +282,10 @@ def targets(path):
 
 def main():
     TMP.mkdir(parents=True, exist_ok=True)
+    xla = os.environ.get("S6T_XLA") == "1"             # TPU VM: one seed per TPU chip (torch_xla), see patch_xla()
     trainer = TMP / "compact_train_s6t.py"
-    trainer.write_text(patch(trainer_source()))
-    log("patched trainer written")
+    trainer.write_text(patch_xla(patch(trainer_source())) if xla else patch(trainer_source()))
+    log("patched trainer written", "(XLA/TPU)" if xla else "(CUDA)")
     tpath = TMP / "targets_s6t.csv"
     targets(tpath)
     shards = [p for p in find_dirs("meta.f32.npy") if (p / "index.json").is_file()]
@@ -222,8 +297,12 @@ def main():
     n_st = sum(len(json.load(open(Path(d) / "index.json"))["done"]) for d in shards)
     log("cache shards %d, studies %d: %s" % (len(shards), n_st, shards))
     import torch
-    n_gpu = torch.cuda.device_count()
-    log("GPUs", n_gpu, [torch.cuda.get_device_name(i) for i in range(n_gpu)])
+    if xla:
+        n_gpu = len(SEEDS)
+        log("TPU mode: %d processes, one chip each; torch %s" % (n_gpu, torch.__version__))
+    else:
+        n_gpu = torch.cuda.device_count()
+        log("GPUs", n_gpu, [torch.cuda.get_device_name(i) for i in range(n_gpu)])
     deadline = T0 + STOP_AFTER_H * 3600
     if os.environ.get("KG_DEADLINE"):                  # kgkit gpu wrapper: graceful-stop time of the session
         deadline = min(deadline, float(os.environ["KG_DEADLINE"]))
@@ -233,19 +312,24 @@ def main():
         out.mkdir(parents=True, exist_ok=True)
         # resume from an attached earlier run of this kernel family when one is present
         prev = [p for p in walk_inputs("E_prior_s%d_f0.pt" % seed, 8) if "/ckpt/" in str(p)]
-        if prev:
+        if prev:                                       # several attached runs: resume from the most advanced checkpoint
+            ep_of = {p: int(torch.load(p, map_location="cpu", weights_only=False)["epoch"]) for p in prev}
+            best = max(prev, key=lambda p: ep_of[p])
             (out / "ckpt").mkdir(exist_ok=True)
-            shutil.copyfile(prev[0], out / "ckpt" / prev[0].name)
-            log("seed %d resumes from %s" % (seed, prev[0]))
+            shutil.copyfile(best, out / "ckpt" / best.name)
+            log("seed %d resumes after epoch %d from %s (candidates %s)" % (seed, ep_of[best], best, {str(k): v for k, v in ep_of.items()}))
         cmd = [sys.executable, "-u", str(trainer), "--px", ",".join(shards), "--targets", str(tpath), "--out", str(out),
                "--arms", "E_prior", "--backbone", "convnext_small.fb_in22k_ft_in1k", "--init", "timm", "--seeds", "1",
                "--seed-base", str(seed), "--folds", "1", "--epochs", str(1 if DEV else EPOCHS), "--batch", "2",
                "--train-windows", "64", "--crop", "288", "--slices", "3", "--phys-mm", "3.5", "--spatial-attn", "--grad-ckpt",
-               "--lr", "1e-4", "--head-lr", "1e-3", "--wd", "0.05", "--workers", "2", "--eval-workers", "1", "--aug", "crop",
+               "--lr", "1e-4", "--head-lr", "1e-3", "--wd", "0.05", "--workers", "6" if xla else "2", "--eval-workers", "1", "--aug", "crop",
                "--train-sampling", "uniform", "--eval-stride", "3", "--resume", "--ckpt-every", "1",
                "--i-have-user-authorisation-to-finetune"]
         env = dict(os.environ, CUDA_VISIBLE_DEVICES=str(gi), S6T_ALL_DATA="1", S6T_DEADLINE="%.0f" % deadline,
                    OMP_NUM_THREADS="1", PYTHONDONTWRITEBYTECODE="1")
+        if xla:
+            env.update(tpu_env(gi))
+            env.pop("CUDA_VISIBLE_DEVICES", None)
         lf = open(WORK / ("train_s%d.log" % seed), "w")
         procs.append((seed, subprocess.Popen(cmd, stdout=lf, stderr=subprocess.STDOUT, env=env, cwd=str(TMP)), lf))
         log("seed %d started on GPU %d" % (seed, gi))

@@ -108,6 +108,9 @@ torch_xla 2.8 (PJRT CPU) run trained, checkpointed, resumed and saved, and the C
 and `TpuV6E1` are silently stored as `TpuV5E8`; `TpuV6E8` and `Tpu1VmV38` are kept as their own pools, but queued too.
 Kaggle allows one batch TPU session per user. The real job `s6t-tpu-train` (resumes from the most advanced attached
 checkpoint) was queued at 08:37 UTC. If it has not started by the 10-17 00:00 GPU reset, GPU session 2b goes ahead.
+**It started at 21:26 UTC** (12 h 49 min in the queue). Kaggle serves no log while a job runs, so the TPU step time is not
+known yet. GPU session 2b is therefore still pushed at 00:03 UTC as a hedge (≤ 9.5 of the new 30 GPU-h). Whichever run
+finishes epochs 10–15 first feeds the S6T gate; the other run's models are not read.
 
 **Gate (all must hold; read once, after training).**
 1. Leg gold-58 macro AUC ≥ 0.925 (both public S6-recipe models are ≥ 0.9267).

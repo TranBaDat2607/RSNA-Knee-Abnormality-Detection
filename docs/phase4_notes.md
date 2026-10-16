@@ -95,6 +95,16 @@ s7 0.534 → 0.431 and s8 0.536 → 0.429 (s6fall at the same epoch: 0.552 → 0
 8 epochs run in two resume sessions: **2a** now, on the 3.24 h of this week's quota (≈ 2 epochs), and **2b** after
 the 10-17 00:00 UTC reset (≈ 6 epochs, ≈ 8 h).
 
+**TPU path (2026-10-16, GPU quota spent, TPU 20 h unused).** `s6t_train.py` now has a TPU mode (`S6T_XLA=1`): one
+seed per v5e chip (PJRT `TPU_VISIBLE_CHIPS`), bf16 autocast, static shapes (W padded to 64, all B×W windows through the
+encoder, crop on CPU), `mark_step` per optimiser step, `xm.save` checkpoints, and torch_xla's reentrant checkpoint in
+place of timm's. On CPU, the patched forward equals the original (max |Δlogit| 4.8e-7 with padded windows). A local
+torch_xla 2.8 (PJRT CPU) run trained, checkpointed, resumed and saved, and the CUDA epoch-7 checkpoint loads on `xla:0`
+(AdamW state, scheduler step 17,392). No shape avoids the TPU queue (300+ deep per the forum): `TpuV5E1`, `TpuV5E4`
+and `TpuV6E1` are silently stored as `TpuV5E8`; `TpuV6E8` and `Tpu1VmV38` are kept as their own pools, but queued too.
+Kaggle allows one batch TPU session per user. The real job `s6t-tpu-train` (resumes from the most advanced attached
+checkpoint) was queued at 08:37 UTC. If it has not started by the 10-17 00:00 GPU reset, GPU session 2b goes ahead.
+
 **Gate (all must hold; read once, after training).**
 1. Leg gold-58 macro AUC ≥ 0.925 (both public S6-recipe models are ≥ 0.9267).
 2. Mean Spearman on gold-58 ≤ 0.90 against each of raptor, R7 and s6fall.

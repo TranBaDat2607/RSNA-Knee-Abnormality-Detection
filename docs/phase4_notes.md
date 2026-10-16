@@ -182,3 +182,7 @@ A14 (`kernels/oai-a14`, `build.py <A12 nb> plain`): only the compact cell change
 The dev run on the 3-row test was pushed at 12:47 UTC on this week's last 0.25 GPU-h.
 **Dev run v1 passed** (532 s): Raptor 384/224, R6 (`fe055406-w1`, flip off, 3/3 scored, 0 fallback), s6fall 3/3,
 three-way blend written, `kgkit validate` OK. **Submitted 2026-10-16 12:58 UTC as `57269763` (ledger `0011_a14`).**
+
+**Base for A13 (fixed now, before A14's score):** if A14 scores strictly above 0.957, A13 = `oai-a13/build.py <A14 nb> 2`.
+Otherwise it is built on A12 as planned. The A13 builder runs on the A14 notebook unchanged (tested: 884 KB, R6 bundle kept).
+A13's metadata attaches both the R7 and R6 datasets, so it works on either base.

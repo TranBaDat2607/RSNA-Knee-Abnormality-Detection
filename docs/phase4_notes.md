@@ -89,6 +89,12 @@ About 5 GPU-h in total (two kernels at a time).
 19:32 UTC. `kgkit gpu push` first refused it, because finished cache kernels were still reserved at 12 h each
 (UAT TranBaDat2607/claude-code-kaggle-grandmaster#16). The live quota (13.67 h) covered the cap, so it went out with `--force`.
 
+**Session 1 result (`s6t-train` v1, 10.42 GPU-h).** About 77 min per epoch (≈ 2.1 s/step on a T4; each seed on its own
+T4). The epoch guard stopped both seeds cleanly after **epoch 7 of 16**, keeping their checkpoints. Training loss
+s7 0.534 → 0.431 and s8 0.536 → 0.429 (s6fall at the same epoch: 0.552 → 0.433). No score was read. The remaining
+8 epochs run in two resume sessions: **2a** now, on the 3.24 h of this week's quota (≈ 2 epochs), and **2b** after
+the 10-17 00:00 UTC reset (≈ 6 epochs, ≈ 8 h).
+
 **Gate (all must hold; read once, after training).**
 1. Leg gold-58 macro AUC ≥ 0.925 (both public S6-recipe models are ≥ 0.9267).
 2. Mean Spearman on gold-58 ≤ 0.90 against each of raptor, R7 and s6fall.

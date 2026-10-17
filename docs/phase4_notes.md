@@ -386,3 +386,7 @@ only if the gate passed and rule 4 still holds.
 
 A16 is submitted if the gate holds and the dev run passes. **A16 replaces A12 as the OAI pick only if its public score is
 strictly above 0.957.**
+**Amendment (14:28 UTC, before any V2 result or timing exists).** The GPU dev run `v2-dev-train` has sat in the GPU queue
+for 30 min. The TPU job is pushed now with **12 epochs fixed**, so that it does not lose queue time (12 h or more). The
+CPU-XLA smoke test already covers its code path. The 10.5 h epoch rule above now applies only to the GPU seeds. TPU seeds
+average with the GPU seeds even if their E differs; they are seeds of the same recipe.

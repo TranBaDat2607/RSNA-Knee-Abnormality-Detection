@@ -112,6 +112,15 @@ checkpoint) was queued at 08:37 UTC. If it has not started by the 10-17 00:00 GP
 known yet. GPU session 2b is therefore still pushed at 00:03 UTC as a hedge (≤ 9.5 of the new 30 GPU-h). Whichever run
 finishes epochs 10–15 first feeds the S6T gate; the other run's models are not read.
 
+**TPU result (`s6t-tpu-train`, COMPLETE 23:58 UTC, 2.18 TPU-h, 0 GPU-h).** Kernel inputs are bound at push time:
+`s6t-r1-train` was still running at 08:37, so its epoch-9 checkpoints were not mounted. Both seeds therefore resumed after
+epoch 7 (session 1) and trained epochs 8–15 on TPU. Session 2a's models are not used. ≈ 935 s per epoch per seed on one v5e chip
+(≈ 0.43 s/step) vs 77 min on a T4, about 4.9× faster. TPU losses at epochs 8–9 equal session 2a's to 3–4 decimals
+(s7 0.4248/0.4187 vs 0.4250/0.4187; s8 0.4229/0.4169 vs 0.4229/0.4170). Final epoch 15: s7 0.3962, s8 0.3954. Both exit 0,
+models saved (sha256 s7 `242b37df…`, s8 `b16d32ee…`). GPU 2b was not pushed (TPU finished 5 min before the reset).
+The S6T gold-58 kernel (`rsna-knee-s6t-gold58` v1, attached to `s6t-tpu-train`) was pushed at 00:00 UTC on 10-17.
+The gate below is read once, from its output.
+
 **Gate (all must hold; read once, after training).**
 1. Leg gold-58 macro AUC ≥ 0.925 (both public S6-recipe models are ≥ 0.9267).
 2. Mean Spearman on gold-58 ≤ 0.90 against each of raptor, R7 and s6fall.

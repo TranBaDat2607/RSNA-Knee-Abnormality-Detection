@@ -16,7 +16,7 @@
   "heliosli/rsna-orthofoundation-fold0-epoch7-20261004"
  ],
  "kernel_sources": [
-  "tranbadat/s6t-train"
+  "tranbadat/s6t-tpu-train"
  ],
  "competition_sources": [
   "rsna-knee-abnormality-detection"

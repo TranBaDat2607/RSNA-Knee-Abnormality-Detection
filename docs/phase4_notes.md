@@ -271,3 +271,10 @@ V1 therefore starts from the **official public OrthoFoundation-L checkpoint** (`
 no competition-data training and no gold-58 exposure. Local check: 366 tensors, strict load into `OFLEncoder`, 101.7M of
 304.1M parameters trainable, deploy round trip exact. The broken TPU job was deleted (user OK) and re-queued at 00:58 UTC.
 A queued TPU job holds the single TPU slot, and the API cannot cancel it before it has a session id.
+
+**Dev run v2 (`v1-dev-train`, 2×T4, 120 studies, 1 epoch): passed.** Official checkpoint converted (366 tensors), both seeds
+exit 0 with models saved, no OOM at 32 windows × batch 2, fp16 loss finite (0.561 / 0.563). 60 steps in 110 / 115 s,
+including model load: ≤ 1.8 s/step, so ≈ 55–65 min per epoch per T4 and ≈ 7.5–8.7 h for the 8 epochs (guard 11.4 h).
+**Full GPU run `tranbadat/v1-train` (seeds 7, 8, 8 epochs, cap 11.8 h) pushed at 01:03 UTC.** The timing-only gold kernel
+`rsna-knee-v1-gold58-dev` (dev models, strides 1–4, no probabilities written) was pushed at the same time and sets rule 4's
+stride.

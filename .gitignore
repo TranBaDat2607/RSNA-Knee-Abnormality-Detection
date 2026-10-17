@@ -21,6 +21,7 @@ dist/
 # Raw competition data (large / redistribution-restricted by Kaggle rules)
 data/train.csv
 data/test.csv
+data/sample_submission.csv
 data/*.dcm
 data/train_series/
 data/test_series/
@@ -33,3 +34,10 @@ data/test_series/
 # OS
 .DS_Store
 Thumbs.db
+
+# Phase 4: local-only outputs (gold-58 kernel outputs hold competition labels; kgkit-generated GPU bundles; forum dumps)
+experiments/phase2/analysis/gold_out/
+experiments/phase2/analysis/disc/
+/kernels/
+experiments/phase4/kernels/oai-a13/*.ipynb
+experiments/phase4/kernels/oai-a15/*.ipynb

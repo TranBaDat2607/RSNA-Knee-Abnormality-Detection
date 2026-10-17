@@ -307,3 +307,9 @@ finishes well inside 4.77 h (A14, same cost, ≤ 4.3 h), so stride 1 is the expe
 `kgkit validate`: OK. About 5 min of fixed cost (OFL-L sha check and conversion, model loads) runs before the V1 pass and is
 covered by the 20-minute reserve. Next: when `v1-train` finishes, version 2 of the weights dataset gets the real seeds 7 and 8,
 the gate kernel runs at stride 1, and A15 is pushed again only if the gate passes.
+
+**Public watch, 10-17 04:30 UTC (`watch_public.py 0.957`).** One new 0.958 notebook: `kiyoshiohno/rsna-knee-template`. It is
+a thin launcher: it `exec`s `rsna_knee_pipeline.py` from an attached logic dataset whose slug is blank in the public metadata
+(private or unlisted), next to `mattiaangeli/knee-mri-fold-weights`, nartaa's SWA weights and heliosli's OrthoFoundation
+container. The logic cannot be read, so it cannot be audited or forked: **not usable.** The other 0.958 (goodpjw v26,
+per-finding weights read off the LB) was already ruled out on 10-16.

@@ -1,7 +1,7 @@
 {
- "id": "tranbadat/rsna-knee-v1-gold58-dev",
- "title": "rsna-knee-v1-gold58-dev",
- "code_file": "rsna-knee-v1-gold58-dev.ipynb",
+ "id": "tranbadat/rsna-knee-v1-gold58",
+ "title": "rsna-knee-v1-gold58",
+ "code_file": "rsna-knee-v1-gold58.ipynb",
  "language": "python",
  "kernel_type": "notebook",
  "is_private": true,
@@ -17,7 +17,7 @@
   "pritom2357/orthofoundation-l-dinov3"
  ],
  "kernel_sources": [
-  "tranbadat/v1-dev-train"
+  "tranbadat/v1-train"
  ],
  "competition_sources": [
   "rsna-knee-abnormality-detection"

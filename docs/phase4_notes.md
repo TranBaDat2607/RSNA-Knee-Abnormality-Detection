@@ -313,3 +313,9 @@ a thin launcher: it `exec`s `rsna_knee_pipeline.py` from an attached logic datas
 (private or unlisted), next to `mattiaangeli/knee-mri-fold-weights`, nartaa's SWA weights and heliosli's OrthoFoundation
 container. The logic cannot be read, so it cannot be audited or forked: **not usable.** The other 0.958 (goodpjw v26,
 per-finding weights read off the LB) was already ruled out on 10-16.
+
+**V1 GPU training (`tranbadat/v1-train` v1, 01:03 → ≈ 09:45 UTC): complete.** Both seeds exit 0 with models saved
+(`v1_receipt.json`: s7 `9ffda78d…`, s8 `b1b31390…`). 8 epochs each, ≈ 3,550 s (s7) / 3,890 s (s8) per epoch on one T4.
+Training loss: s7 0.5412 → 0.4504, s8 0.5400 → 0.4507, falling every epoch. The TPU seeds 9 and 10 are still queued, so
+by the pre-registered rule **the V1 leg for the gate = mean logit of seeds 7 and 8.**
+**Gate kernel `rsna-knee-v1-gold58` v1 (stride 1, `kernel_sources` = the COMPLETE `v1-train`) pushed at 10:01 UTC.**

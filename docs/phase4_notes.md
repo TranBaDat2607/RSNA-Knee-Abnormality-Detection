@@ -300,3 +300,10 @@ finishes well inside 4.77 h (A14, same cost, ≤ 4.3 h), so stride 1 is the expe
 - It puts the V1 seeds from the private `tranbadat/rsna-knee-v1-weights` into one models folder and runs run_b
   (tag B: s6fall's failure allowance and strict receipt checks).
 - final = 3/4 × A12 + 1/4 × rank(V1). Coverage < 90 %, or any error, keeps A12's file.
+
+**A15 pipeline dev run (`rsna-knee-oai-a15` v1, 02:28–02:47 UTC; placeholder `tranbadat/rsna-knee-v1-weights` v1 = the
+1-epoch dev models, so its numbers are not a decision input): passed.** A12's stages ran unchanged (s6fall 3/3,
+`A12_BLEND_DONE`). Then `V1_PLAN studies 3, 511 min left, stride 1`: V1 stage 88 s, 3/3 scored, 0 failed, `A15_BLEND_DONE`.
+`kgkit validate`: OK. About 5 min of fixed cost (OFL-L sha check and conversion, model loads) runs before the V1 pass and is
+covered by the 20-minute reserve. Next: when `v1-train` finishes, version 2 of the weights dataset gets the real seeds 7 and 8,
+the gate kernel runs at stride 1, and A15 is pushed again only if the gate passes.

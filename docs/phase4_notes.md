@@ -121,6 +121,23 @@ models saved (sha256 s7 `242b37df…`, s8 `b16d32ee…`). GPU 2b was not pushed 
 The S6T gold-58 kernel (`rsna-knee-s6t-gold58` v1, attached to `s6t-tpu-train`) was pushed at 00:00 UTC on 10-17.
 The gate below is read once, from its output.
 
+**S6T gate result (read once, 2026-10-17 00:17 UTC): FAIL on rule 2 → S6T is dropped, A13 is not submitted, and A12 stays.**
+
+| | gold-58 | ρ raptor | ρ R7 | ρ s6fall |
+|---|---|---|---|---|
+| S6T s7 | 0.9266 | 0.893 | 0.875 | 0.944 |
+| S6T s8 | 0.9295 | 0.892 | 0.886 | 0.930 |
+| **S6T (2 seeds)** | **0.9315** | 0.900 | 0.889 | **0.945** |
+| A13 = 3/4 A12 + 1/4 S6T | 0.9399 (A12 0.9404, −0.0005) | | | |
+
+Rule 1 (≥ 0.925) passes and rule 3 (A13 ≥ A12 − 0.003) passes. Rule 2 (ρ ≤ 0.90 against each leg) fails: S6T is
+ρ 0.945 with s6fall. Same recipe, same geometry and a different label table did not decorrelate the model. The pre-training
+estimate (S6 vs s6fall ρ 0.866) came from two models that also differ in their training data and pipeline, not in labels
+alone. Per-finding, S6T is stronger than s6fall on Effusion, Fracture and Contusion, but that is a gold-58 read and is
+not used. Inference cost on gold-58: 234 / 218 s per seed for 58 studies (≈ 4 s/study), as projected.
+Ledger `0012_s6t-gold58` (discard). This is the same lesson as R6/A14: a same-family model with different labels or folds is not
+a new leg.
+
 **Gate (all must hold; read once, after training).**
 1. Leg gold-58 macro AUC ≥ 0.925 (both public S6-recipe models are ≥ 0.9267).
 2. Mean Spearman on gold-58 ≤ 0.90 against each of raptor, R7 and s6fall.

@@ -40,3 +40,4 @@ experiments/phase2/analysis/gold_out/
 experiments/phase2/analysis/disc/
 /kernels/
 experiments/phase4/kernels/oai-a13/*.ipynb
+experiments/phase4/kernels/oai-a15/*.ipynb

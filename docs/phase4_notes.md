@@ -278,3 +278,25 @@ including model load: ≤ 1.8 s/step, so ≈ 55–65 min per epoch per T4 and �
 **Full GPU run `tranbadat/v1-train` (seeds 7, 8, 8 epochs, cap 11.8 h) pushed at 01:03 UTC.** The timing-only gold kernel
 `rsna-knee-v1-gold58-dev` (dev models, strides 1–4, no probabilities written) was pushed at the same time and sets rule 4's
 stride.
+
+**Rule 4 result (`v1_gate.py runtime`, timing only; both seeds on one shared trunk, 2 T4, 0 failures):**
+
+| stride | s/study/worker | V1 stage, 1,322 studies × 1.15 | projected A15 |
+|---|---|---|---|
+| 1 | 17.5 | 3.70 h | 8.47 h (fits ≤ 8.5) |
+| 2 | 9.6 | 2.04 h | 6.81 h |
+| 3 | 8.0 | 1.69 h | 6.46 h |
+| 4 | 7.4 | 1.57 h | 6.34 h |
+
+→ **The gate kernel runs at stride 1.** Stride 1 fits by 2 minutes, measured against D1's upper bound (4.77 h, which includes
+queueing). A fixed stride 1 in the submission could therefore be cut by the time guard and silently fall back to A12's file.
+**Fixed now, from timing only, before any V1 score:** A15's V1 cell picks the stride at run time. It uses the smallest of
+1–4 whose measured cost (s/study/worker × N / 2 × 1.10) fits the time left before 9 h minus 20 minutes. A12 typically
+finishes well inside 4.77 h (A14, same cost, ≤ 4.3 h), so stride 1 is the expected case.
+
+**A15 builder (`kernels/oai-a15/build.py <A12 nb> <2|4>`).** A12's cells are unchanged. One cell follows A12's blend:
+- It runs only if A12's s6fall stage completed (it reuses that stage's s6fall module and inputs).
+- It checks the official OFL-L sha256 and converts with the same `convert_state`.
+- It puts the V1 seeds from the private `tranbadat/rsna-knee-v1-weights` into one models folder and runs run_b
+  (tag B: s6fall's failure allowance and strict receipt checks).
+- final = 3/4 × A12 + 1/4 × rank(V1). Coverage < 90 %, or any error, keeps A12's file.

@@ -220,3 +220,44 @@ phase-3 statistics predicted (R6 is a stronger R7 on gold-58 but ρ 0.98).
 **Base for A13 (fixed before A14's score):** if A14 scores strictly above 0.957, A13 = `oai-a13/build.py <A14 nb> 2`.
 Otherwise it is built on A12 as planned. The A13 builder runs on the A14 notebook unchanged (tested: 884 KB, R6 bundle kept).
 A13's metadata attaches both the R7 and R6 datasets, so it works on either base.
+
+## 2026-10-17: V1, an OrthoFoundation ViT-L leg (pre-registered before any V1 code ran)
+
+**Why.** S6T failed on correlation (ρ s6fall 0.945). The same recipe with new labels does not make a new leg; R6 → A14
+showed the same. Every A12 leg is a CNN (CoAtNet, ConvNeXt ×2). heliosli's `compact_train.py` (the exact file S6T
+used, sha `14767c7a…`) also supports `--backbone ofl_l`, the OrthoFoundation-L encoder (timm
+`vit_large_patch16_dinov3_qkvb`, RoPE removed). It freezes the first 16 of 24 blocks and trains the top 8 plus the head.
+The public weights are attached already, as `weight_parts.json` + `weights.part000–009` in
+`heliosli/rsna-orthofoundation-fold0-epoch7-20261004` (assembled sha256 `4f424cc7…`, loaded strictly).
+heliosli's retired 0.954 blend (`rsna-knee-blend-gold`, nartaa 0.7 + an ofl_l compact model 0.3) used this leg type.
+OrthoFoundation was pretrained on public orthopaedic MRI (fastMRI included, and per forum 749858 OAI-derived), so
+**V1 is OAI-track only**.
+
+**Recipe (fixed now; only what ofl_l forces differs from S6T).** S6T cache (size 320, views v4, slices 3, phys_mm 3.5),
+teach4opus `E_prior`, all 4,348 non-gold studies, gold-58 and gold-report duplicates excluded. Backbone ofl_l, freeze 16,
+crop 288 (S6T's field of view), batch 2, **32 train windows** (S6T: 64; a ViT-L tail at 288 px needs ≈ 12 GB for 64 × 2,
+which a 15 GB T4 cannot hold), lr 1e-4 (trained blocks) / head 1e-3, wd 0.05, aug crop, uniform sampling. No spatial
+attention (compact_train rejects it for ofl_l) and no gradient checkpointing (the OFL encoder has none). **8 epochs.**
+
+**Where it trains (user, 10-17: GPU and TPU at the same time).**
+- GPU session (`kgkit gpu`, 2×T4, fp16 + GradScaler): seeds 7 and 8, one per T4.
+- TPU job (v5e, bf16, one chip per seed): seeds 9 and 10.
+
+Both write `E_prior_s<seed>_f0.pt`, the deploy state: trained tail + head only. compact_infer runs several ofl_l models on
+one shared frozen trunk, so each extra seed costs only the 8-block tail, about ⅓ of a model.
+
+**Leg.** V1 = mean logit over the seeds that have finished when the gold-58 kernel is pushed (the GPU seeds; the TPU seeds too
+if they are done by then). TPU seeds that finish later join only if the gate passed and rule 4 still holds with them.
+That is decided by runtime, not by a second gold read.
+
+**Gate (all must hold; read once, `analysis/v1_gate.py`).**
+1. V1 gold-58 macro AUC ≥ 0.925.
+2. Mean Spearman on gold-58 ≤ 0.90 against each of raptor, R7 and s6fall.
+3. A15 = 3/4 × A12 + 1/4 × rank(V1) ≥ A12's gold-58 − 0.003 (regression guard only).
+4. Runtime: V1 runs as its own compact_infer stage after A12's three stages, inside A12's time guard (any failure,
+   timeout or < 90 % coverage keeps A12's file). Projected A15 = 4.77 h (D1, A12's upper bound) + V1 stage (gold-58 per-study
+   time × 1,322 / 2 GPUs × 1.15) ≤ 8.5 h. The eval stride is the smallest of 1, 2, 3, 4 that fits, chosen from timing
+   only. If none fits, V1 is dropped.
+
+A15 is submitted if the gate holds and the dev run on the 3-row test passes. **A15 replaces A12 as the OAI pick only if
+its public score is strictly above 0.957.**

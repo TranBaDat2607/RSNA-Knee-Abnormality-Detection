@@ -327,3 +327,27 @@ so the stage is GPU-bound. **Fixed now, from timing only, before the gate is rea
 real-model cost, `V1_PER = {1: 17.9, 2: 9.8, 3: 8.2, 4: 7.6}` (dev values × 17.9/17.5). That is more conservative: stride 1
 is chosen only if 17.9 × N/2 × 1.10 fits the time left. On 1,322 studies stride 1 needs ≈ 3.6 h, and A12's stages took ≤ 4.3 h
 in A14's grading (same cost), so stride 1 is the expected case and stride 2 the fallback.
+
+**V1 gate result (`analysis/v1_gate.py gate`, read once, 13:45 UTC): FAIL (rules 1 and 3).**
+
+| | gold-58 macro | ρ raptor | ρ R7 | ρ s6fall |
+|---|---|---|---|---|
+| V1 seed 7 | 0.8927 | 0.883 | 0.833 | 0.860 |
+| V1 seed 8 | 0.8974 | 0.886 | 0.839 | 0.869 |
+| **V1 (mean of 7, 8)** | **0.8957** (rule 1: ≥ 0.925 FAIL) | 0.887 | 0.839 | 0.868 (rule 2 PASS) |
+| A12 | 0.9404 | | | |
+| A15 = 3/4 A12 + 1/4 V1 | 0.9346 (−0.0058; rule 3: ≥ A12 − 0.003 FAIL) | | | |
+
+Per finding, V1 is strong where every leg is strong (Effusion 0.991, Medial OA 0.971, Medial Meniscus 0.964, ACL 0.952)
+and weak on MCL 0.796, Synovitis 0.791, Lateral OA 0.812, PF OA 0.852 and Lateral Meniscus 0.855. In A15 it costs
+MCL −0.025, Lateral Meniscus −0.017, PF OA −0.011, Baker's −0.010 and gains only Effusion +0.009 and Fracture +0.009.
+V1 is the first leg that is decorrelated (ρ 0.84–0.89, a new model family) but at 0.896 it is too weak to add.
+Seed averaging gave +0.003 over the mean single seed, so TPU seeds 9 and 10 cannot close a 0.03 gap.
+**Decision: A15 is not built or submitted; A12 stays the OAI pick** (ledger `0013_v1-gold58`, discard). The TPU seeds do
+not join (the pre-registered rule needs a passed gate). The weights stay unpublished (`rsna-knee-v1-weights` keeps the dev
+placeholder v1).
+
+**Where this leaves the "fourth leg" search (phase 4).** Three candidates, three gate failures, on both sides of the gate:
+S6T was strong but the same family (gold 0.9315, ρ s6fall 0.945); R6 was strong but the same family (ρ R7 0.98; A14 public
+0.957 = A12); V1 was a new family but weak (0.896). Our own trained legs on report labels top out near 0.93 on gold-58.
+A new family needs far more training than the 5 days left allow, so phase 4 stops looking for a fourth leg.

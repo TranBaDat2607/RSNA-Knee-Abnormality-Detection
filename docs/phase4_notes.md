@@ -355,3 +355,34 @@ The queued TPU job `v1-tpu-train` (seeds 9, 10; queued 00:58, never started afte
 (user OK), which frees the TPU slot. The GPU-and-TPU race result is posted to UAT
 TranBaDat2607/claude-code-kaggle-grandmaster#18: for runs under about 12 h the T4 finishes first despite being ≈ 5× slower
 per step.
+
+## 2026-10-17: V2, a fully fine-tuned DINOv2 ViT-S leg (pre-registered before any V2 code ran)
+
+**Why.** The forum's strongest single models without external data are 2.5-D DINOv2 ViT-S models (thread 735304:
+colum2131 ViT-S 0.951 next to ConvNeXt-T 0.953 with the same pipeline; Adel Zebiche single-fold DINOv2 224 px 0.952).
+Every A12 leg is a CNN. V1 showed that a ViT family is decorrelated from them (ρ 0.84–0.89), but V1 was a frozen-trunk
+ViT-L (16 of 24 blocks frozen, 32 windows) and too weak (0.896). V2 is the forum's form: a small ViT, **fully fine-tuned**.
+The GPU quota left (17.9 h) does not reset before the deadline, so it has no other use.
+
+**Recipe (fixed now; only what the ViT forces differs from S6T).** heliosli's `compact_train.py` (sha `14767c7a…`) with
+S6T's patches. timm `vit_small_patch14_dinov2.lvd142m` (public DINOv2 weights, Apache-2.0), all layers trained, with
+layer-wise LR decay 0.8 (top block 1e-4; head 1e-3; wd 0.05). Crop **280** (patch 14 × 20; S6T's 288 is not a multiple of 14),
+S6T cache (size 320, views v4, slices 3, phys_mm 3.5), 64 train windows, batch 2, per-class spatial attention over the ViT
+tokens, gradient checkpointing, aug crop, uniform sampling. Labels: teach4opus `E_prior`, all 4,348 non-gold studies
+(gold-58 and gold-report duplicates excluded).
+**Epochs: 12**, unless the GPU dev run projects more than 10.5 h for 12 epochs on one T4. Then E = the largest value ≥ 8
+that fits 10.5 h. The TPU uses the same E.
+**Seeds:** GPU 2×T4 seeds 11 and 12; TPU v5e seeds 13 and 14, pushed at the same time.
+
+**Leg.** V2 = mean logit of the seeds finished when the gold-58 kernel is pushed. A TPU seed that finishes later joins
+only if the gate passed and rule 4 still holds.
+
+**Gate (V1's rules, read once, `analysis/v2_gate.py`).**
+1. V2 gold-58 ≥ 0.925.
+2. Mean Spearman ≤ 0.90 against each of raptor, R7 and s6fall.
+3. A16 = 3/4 × A12 + 1/4 × rank(V2) ≥ A12 − 0.003.
+4. Projected A16 = 4.77 h + V2 stage (s/study/worker × 1,322 / 2 × 1.15) ≤ 8.5 h, at the smallest stride of 1–4 that fits.
+   A16 also carries A15's run-time stride guard.
+
+A16 is submitted if the gate holds and the dev run passes. **A16 replaces A12 as the OAI pick only if its public score is
+strictly above 0.957.**

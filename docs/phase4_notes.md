@@ -261,3 +261,13 @@ That is decided by runtime, not by a second gold read.
 
 A15 is submitted if the gate holds and the dev run on the 3-row test passes. **A15 replaces A12 as the OAI pick only if
 its public score is strictly above 0.957.**
+
+**Init correction (dev run v1, 00:30 UTC, before any training step).** heliosli's `weight_parts` assemble into a torch file
+(`safetensors` "header too large"). It is `best.pt`, heliosli's fold-0 fine-tuned classifier, as `receipt.json` says;
+the public encoder in heliosli's blend notebook came from a different dataset (`rsna-knee-ofl-ssl-weights`, 403 now).
+V1 therefore starts from the **official public OrthoFoundation-L checkpoint** (`pritom2357/orthofoundation-l-dinov3`,
+`OrthoFoudation-L.pth`, official sha256 `385a7758…`, MIT). It is converted to timm's layout with heliosli's
+`convert_state` logic, copied into `v1_train.py` and reused verbatim by the gold kernel. This is also the cleaner start:
+no competition-data training and no gold-58 exposure. Local check: 366 tensors, strict load into `OFLEncoder`, 101.7M of
+304.1M parameters trainable, deploy round trip exact. The broken TPU job was deleted (user OK) and re-queued at 00:58 UTC.
+A queued TPU job holds the single TPU slot, and the API cannot cancel it before it has a session id.

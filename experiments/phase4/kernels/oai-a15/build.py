@@ -32,7 +32,7 @@ import glob, hashlib, json, os, shutil, time
 import numpy as np, pandas as pd
 from pathlib import Path
 V1_N_SEEDS = __N_SEEDS__
-V1_PER = {1: 17.5, 2: 9.6, 3: 8.0, 4: 7.4}     # s/study/worker on gold-58 (rsna-knee-v1-gold58-dev: 2 seeds, shared trunk, 2 T4)
+V1_PER = {1: 17.9, 2: 9.8, 3: 8.2, 4: 7.6}     # s/study/worker on gold-58 (rsna-knee-v1-gold58 with the real seeds 7+8: 17.9 at stride 1; 2-4 scaled from the dev run)
 V1_OFL_SHA = '385a775822107b68eaa486336feb982e1ce7bd6d4e8c03ceb482a0bf546f2ff9'
 V1_CONVERT = __CONVERT__
 V1_OK = False

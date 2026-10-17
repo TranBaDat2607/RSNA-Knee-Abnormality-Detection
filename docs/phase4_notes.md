@@ -319,3 +319,11 @@ per-finding weights read off the LB) was already ruled out on 10-16.
 Training loss: s7 0.5412 → 0.4504, s8 0.5400 → 0.4507, falling every epoch. The TPU seeds 9 and 10 are still queued, so
 by the pre-registered rule **the V1 leg for the gate = mean logit of seeds 7 and 8.**
 **Gate kernel `rsna-knee-v1-gold58` v1 (stride 1, `kernel_sources` = the COMPLETE `v1-train`) pushed at 10:01 UTC.**
+
+**Gate kernel run (`rsna-knee-v1-gold58` v1, 10:01–10:31 UTC): clean.** 58/58 studies, 0 failures, models
+`E_prior_s7_f0.pt` + `E_prior_s8_f0.pt` from `v1-train`, shared trunk, stride 1. Timing with the real models: parts (29,
+520.5 s) and (29, 464.2 s), so 17.9 s/study/worker on the slower T4 (dev models: 17.5). GPU 442 s vs decode 218 s per part,
+so the stage is GPU-bound. **Fixed now, from timing only, before the gate is read:** A15's run-time stride guard uses the
+real-model cost, `V1_PER = {1: 17.9, 2: 9.8, 3: 8.2, 4: 7.6}` (dev values × 17.9/17.5). That is more conservative: stride 1
+is chosen only if 17.9 × N/2 × 1.10 fits the time left. On 1,322 studies stride 1 needs ≈ 3.6 h, and A12's stages took ≤ 4.3 h
+in A14's grading (same cost), so stride 1 is the expected case and stride 2 the fallback.

@@ -390,3 +390,7 @@ strictly above 0.957.**
 for 30 min. The TPU job is pushed now with **12 epochs fixed**, so that it does not lose queue time (12 h or more). The
 CPU-XLA smoke test already covers its code path. The 10.5 h epoch rule above now applies only to the GPU seeds. TPU seeds
 average with the GPU seeds even if their E differs; they are seeds of the same recipe.
+**14:38 UTC:** the GPU dev run is still queued after 43 min, so the full GPU run `v2-train` (seeds 11, 12, 12 epochs, cap
+11.8 h) is pushed now instead of after the dev run. Both GPU slots are now in use. If the dev run's timing projects more
+than 10.5 h for 12 epochs, `v2-train` is stopped and re-pushed with the E the rule gives. If the dev run fails, `v2-train`
+is stopped as well.

@@ -351,3 +351,7 @@ placeholder v1).
 S6T was strong but the same family (gold 0.9315, ρ s6fall 0.945); R6 was strong but the same family (ρ R7 0.98; A14 public
 0.957 = A12); V1 was a new family but weak (0.896). Our own trained legs on report labels top out near 0.93 on gold-58.
 A new family needs far more training than the 5 days left allow, so phase 4 stops looking for a fourth leg.
+The queued TPU job `v1-tpu-train` (seeds 9, 10; queued 00:58, never started after 12 h 47 min) was deleted at 13:46 UTC
+(user OK), which frees the TPU slot. The GPU-and-TPU race result is posted to UAT
+TranBaDat2607/claude-code-kaggle-grandmaster#18: for runs under about 12 h the T4 finishes first despite being ≈ 5× slower
+per step.

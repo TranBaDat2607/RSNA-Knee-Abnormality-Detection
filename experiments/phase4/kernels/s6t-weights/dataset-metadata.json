@@ -1,0 +1,7 @@
+{
+  "title": "rsna-knee-s6t-weights",
+  "id": "tranbadat/rsna-knee-s6t-weights",
+  "licenses": [{"name": "other"}],
+  "isPrivate": true,
+  "description": "S6T: heliosli's S6 recipe (compact_train.py, convnext_small, size 320 / crop 288 / views v4) retrained on teach4opus soft labels, all 4,348 non-gold training studies, gold-58 excluded. Private; built from the outputs of tranbadat/s6t-train."
+}

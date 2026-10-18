@@ -1,0 +1,1 @@
+{"id":"tranbadat/tpu-probe-tpu1vmv38","title":"tpu-probe-tpu1vmv38","code_file":"tpu-probe-tpu1vmv38.py","language":"python","kernel_type":"script","is_private":true,"enable_gpu":false,"enable_tpu":true,"enable_internet":false,"dataset_sources":[],"kernel_sources":[],"competition_sources":[],"model_sources":[],"machine_shape":"Tpu1VmV38"}

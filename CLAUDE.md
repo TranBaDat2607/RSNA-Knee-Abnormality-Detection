@@ -199,8 +199,10 @@ There is no test suite for `scripts/llm_label_gold.py` or the notebook.
 
 ## Open items (update here when they change)
 
-- Another strong, decorrelated leg for A12 (public release or our own different-recipe model); needs gold ≥ 0.93,
-  ρ ≤ 0.88 vs R7 and nartaa, and must fit the runtime that s6fall leaves.
+- Another strong, decorrelated leg for A12: phase 4 tried three and all failed their gates (S6T 0.9315 but ρ s6fall 0.945;
+  R6 swap = A14, public 0.957 = A12; V1 OrthoFoundation ViT-L ρ ≤ 0.89 but gold 0.896). Only a new public release that
+  passes an audit is still worth testing (`experiments/phase4/analysis/watch_public.py 0.957` daily). Details:
+  `docs/phase4_notes.md`.
 - Clean track: ep0 fine-tune checkpoints (gold 0.925–0.927 vs ep1) are a cheap candidate.
 - Final picks: A12 + C3 unless the hosts rule on OAI (then re-decide with `/kg-final`).
 - Use the GPU quota that expires 2026-10-17 00:00 UTC only on pre-registered work.

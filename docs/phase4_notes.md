@@ -438,3 +438,19 @@ look wrong for a ViT that is learning: seed 11 stays at 0.567 → 0.560 for all 
 is flat until epoch 7, then falls to 0.546. The gate is unchanged and still read once. Its kernel is pushed after the
 TPU seeds (13, 14; `v2-tpu-train`, running since 14:02 UTC) finish, so that the leg holds every finished seed; that
 timing is fixed now, from the queue state only.
+
+**A16 / A17 gold-58 guard (`analysis/a17_gate.py`, read once, 15:10 UTC): PASS.**
+
+| | gold-58 macro | note |
+|---|---|---|
+| A12 (reference) | 0.9404 | |
+| A16 (0.9586 recipe from the gold legs) | 0.9387 | without the reader 0.9388 |
+| **A17 = 2/3 A16 + 1/3 s6fall** | **0.9395** | A17 − A16 +0.0008, CI [−0.0047, +0.0062]; guard ≥ −0.003 passes |
+| A17 − A12 | −0.0009 | CI [−0.0064, +0.0038] |
+
+ρ(A16, s6fall) 0.908. **Information for the final picks (not a gate):** on gold-58 the LB-probed per-finding weights cost
+−0.0007 against uniform 0.5 (CI [−0.0054, +0.0038]): Lateral OA +0.023 (R6 0.865 vs Raptor 0.779 on gold, the weights agree),
+but Synovitis −0.023 (gold has R6 0.859 > Raptor 0.815, the weights push Synovitis to Raptor 0.85) and PF OA −0.009. Gold-58
+has 9–12 positives per finding, so this is weak evidence, but it points the same way as the rule we held on 10-16: part of the
+public gain from these weights may not carry to the private LB.
+Dev runs `rsna-knee-oai-a16` v1 and `rsna-knee-oai-a17` v1 pushed 15:15 UTC (cap 45 min each).

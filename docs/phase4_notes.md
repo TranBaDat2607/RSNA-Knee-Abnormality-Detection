@@ -454,3 +454,6 @@ but Synovitis −0.023 (gold has R6 0.859 > Raptor 0.815, the weights push Synov
 has 9–12 positives per finding, so this is weak evidence, but it points the same way as the rule we held on 10-16: part of the
 public gain from these weights may not carry to the private LB.
 Dev runs `rsna-knee-oai-a16` v1 and `rsna-knee-oai-a17` v1 pushed 15:15 UTC (cap 45 min each).
+**A17 dev run v1 passed** (15:15–15:25 UTC): Raptor 384 (46 s) and 224 (25 s); R6 from `-w1` with `flip_tta True`, 3/3 scored,
+0 fallback (gpu 18.7 s/study on the 3-row test); per-finding blend; Part B reader (3 checkpoints, 25 s); s6fall 3/3 (60 s);
+`A12_BLEND_DONE`. `kgkit validate`: OK. **Submitted 2026-10-19 15:34 UTC (ledger `0010_a17-oai`).**

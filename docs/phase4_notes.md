@@ -394,3 +394,47 @@ average with the GPU seeds even if their E differs; they are seeds of the same r
 11.8 h) is pushed now instead of after the dev run. Both GPU slots are now in use. If the dev run's timing projects more
 than 10.5 h for 12 epochs, `v2-train` is stopped and re-pushed with the E the rule gives. If the dev run fails, `v2-train`
 is stopped as well.
+
+## 2026-10-19: the board moved again; A16 / A17 on the public 0.958 recipe (pre-registered before any gold read or build)
+
+**Standing (10-19 15:00 UTC).** We are rank 1,482 / 6,215 at 0.957; the top is 0.969. The public notebooks now reach 0.958
+(goodpjw `rsna-knee-coatnet-r6-2-5d-mil-lb-0-958` v25–27, heliosli `blend-mine-in-private-lb-luck-to-all-upvoters`) and
+heliosli's `this-is-best-public-dataset-new-version-0-9586` (title 0.9586). No host ruling on OAI (thread 749145; the
+10-17 threads 750257–750260 asking about nartaa/R7/SKM-TEA/RadImageNet weights have no host reply).
+
+**What the 0.9586 notebook is (diffed cell by cell against our A14 notebook, `kernels/oai-a14`).** Stages 1, 1b, the
+controller and the docker image are byte-identical to A14. The differences are exactly: (1) R6 with flip TTA
+(`FLIP_TTA = True`), (2) `C_SLUG = 'rsna-knee-r6-frozen-fe055406'` (non-versioned: a submission would be refused; the
+same bytes are `heliosli/rsna-knee-r6-frozen-fe055406-w1`, manifest sha256 `6508ce69..`, checked by the cell),
+(3) per-finding Raptor weights `W_RAPTOR_C` = Medial OA 0.5, Lateral OA 0.15, PF OA 0.65, Synovitis 0.85, Baker's 0.30
+(else 0.5; "[V2]", one step further along the 0.958 weights 0.2 / 0.6 / 0.8 / 0.35), (4) goodpjw's reader appended as
+Part B: final = rank((1 − w_c) · rank(base) + w_c · rank(reader)), w_c 0.003–0.035, skipped after 8.2 h. One comment
+line in the compact cell carries a paste artefact; it is a comment and changes nothing. So A12's audit covers all of
+it except Part B, which is audited separately (offline `pip --no-index` from its own dataset, a local timm wheel, no
+network, failure keeps the stage-3 file).
+
+**The per-finding weights are public-LB fits** (goodpjw's `PROBE_CLASS` single-class switch; 10-16 note above). On 10-16 we
+did not add them to A12, because tuning on the LB breaks our rule. Forking an unchanged public notebook is a different act
+(A5, A6, A10 were unchanged forks); the private-LB risk of LB-probed weights goes into the final-pick table, not into
+this rule. Gold-58 is independent of the public LB, so the effect of the weights on gold-58 is logged as information for
+the final picks (not a gate, and nartaa 384 was selected on gold, which favours Raptor-heavy weights).
+
+**A16 (OAI)** = the 0.9586 notebook as pulled on 10-19, with only `C_SLUG → 'rsna-knee-r6-frozen-fe055406-w1'`.
+Submit if the dev run on the 3-row test passes (R6 flip ran, blend written, Part B ran or was cleanly skipped,
+`kgkit validate` OK). **A16 replaces A12 as the OAI pick only if its public score is strictly above 0.957.**
+
+**A17 (OAI)** = A16 + A12's three s6fall cells appended unchanged after Part B (nartaa's s6fall, embedded, same sha):
+final = 2/3 × A16 value + 1/3 × rank(s6fall), the form that took A10 0.956 → A12 0.957. Time guard as in A12 (starts only
+with ≥ 70 min left, capped to leave 25 min; any failure or < 90 % coverage keeps A16's file).
+**Gold-58 guard (regression only, read once):** A17 ≥ A16 − 0.003 on gold-58, with A16 reproduced from the gold legs
+(n384, n224 one view, R6 flip, reader at its weights; Raptor half 0.65 / 0.35). Submit if the guard and the dev run pass.
+**A17 becomes the OAI pick only if its public score is strictly above both 0.957 and A16's.** (Tie with A16 → A16.)
+
+**Runtime.** A14 (R6 plain + s6fall) graded in ≤ 4.3 h. Flip doubles R6's GPU time (+1.2–1.5 h, r6-gold58 timing), and
+the reader is ≈ 0.3–0.5 h (A7 carried it). A17 ≈ 6–6.5 h of 9 h; the s6fall guard covers an overrun.
+
+**V2 (training check before its gate).** `v2-train` finished (2×T4, 8.5 h, both seeds exit 0, 12 epochs). The loss curves
+look wrong for a ViT that is learning: seed 11 stays at 0.567 → 0.560 for all 12 epochs (S6T: 0.534 → 0.396), and seed 12
+is flat until epoch 7, then falls to 0.546. The gate is unchanged and still read once. Its kernel is pushed after the
+TPU seeds (13, 14; `v2-tpu-train`, running since 14:02 UTC) finish, so that the leg holds every finished seed; that
+timing is fixed now, from the queue state only.

@@ -457,3 +457,22 @@ Dev runs `rsna-knee-oai-a16` v1 and `rsna-knee-oai-a17` v1 pushed 15:15 UTC (cap
 **A17 dev run v1 passed** (15:15–15:25 UTC): Raptor 384 (46 s) and 224 (25 s); R6 from `-w1` with `flip_tta True`, 3/3 scored,
 0 fallback (gpu 18.7 s/study on the 3-row test); per-finding blend; Part B reader (3 checkpoints, 25 s); s6fall 3/3 (60 s);
 `A12_BLEND_DONE`. `kgkit validate`: OK. **Submitted 2026-10-19 15:34 UTC (ledger `0010_a17-oai`).**
+
+## 2026-10-21: A17 public result; A16 submitted
+
+**A17 (`57401136`) public LB 0.958** (ledger `0014_a17-oai`; the submission message says `0010_a17-oai`, an id that was
+already taken locally by the r6-gold58 entry). That is strictly above 0.957, so A17 already beats A12. The board shown to
+3 decimals puts us at rank 382 / 6,300, with 1,448 teams tied at 0.958 and the top at 0.969.
+
+**A16 dev run v1 passed** (ran 19:15 UTC on 10-19, after the queue): Raptor 384 (55 s) and 224 (24 s); R6 from `-w1`
+with `flip_tta True`, 3/3 scored, 0 fallback; per-finding blend written; Part B reader blended 3 checkpoints (26 s). Part B's
+`pylibjpeg-libjpeg` pip install fails offline, the same as in A17's run, and the stage still completes. The Kaggle copy of
+the notebook is cell-for-cell identical to `kernels/oai-a16`. `kgkit validate`: OK. **Submitted 2026-10-21 02:09 UTC
+(`57461357`, ledger `0015_a16-oai`)**, as the 10-19 rule requires: we need A16's score to decide whether A17 is the pick.
+
+**Decision, by the 10-19 rule, once A16 is scored:**
+- A16 < 0.958 → **A17 is the OAI pick** (replaces A12).
+- A16 = 0.958 (a tie at 3 decimals) → **A16** is the pick (the tie rule).
+- A16 > 0.958 → A16 is the pick.
+
+The clean-track hedge stays C3 (0.946). Final picks: the OAI pick from this rule + C3, unless `/kg-final` says otherwise.

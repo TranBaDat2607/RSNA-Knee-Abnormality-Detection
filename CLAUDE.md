@@ -14,11 +14,13 @@ every study has a free-text report, which this repo turns into training targets 
 
 **Deadline: 2026-10-22 (23:59 UTC). 5 submissions/day, 2 final picks.**
 
-### Where things stand (public LB, read 2026-10-15)
+### Where things stand (public LB, read 2026-10-21)
 
 | Role | Submission | Public LB | Notes |
 |---|---|---|---|
-| OAI-track final pick | A12 `57197656` | **0.957** | A10 + nartaa s6fall as a third equal leg; rank ~211 / 6,043 |
+| OAI-track best | A17 `57401136` | **0.958** | public 0.9586 fork (A16) + nartaa s6fall third leg; rank 382 / 6,300 (1,448 tied at 0.958) |
+| OAI-track pending | A16 `57461357` | grading | public 0.9586 notebook unchanged; submitted 10-21 02:09 UTC; decides A16 vs A17 |
+| Previous OAI pick | A12 `57197656` | 0.957 | A10 + nartaa s6fall as a third equal leg |
 | Clean-track hedge | C3 `57186035` | 0.946 | no gated external data; ~7.5 h of the 9 h limit |
 | Own models alone | R5t 0.922 > R3 0.920 > R4 0.917 | | retired from the OAI track (cost ≈ −0.001 each time) |
 
@@ -204,5 +206,6 @@ There is no test suite for `scripts/llm_label_gold.py` or the notebook.
   passes an audit is still worth testing (`experiments/phase4/analysis/watch_public.py 0.957` daily). Details:
   `docs/phase4_notes.md`.
 - Clean track: ep0 fine-tune checkpoints (gold 0.925–0.927 vs ep1) are a cheap candidate.
-- Final picks: A12 + C3 unless the hosts rule on OAI (then re-decide with `/kg-final`).
+- Final picks: OAI pick + C3. The OAI pick is A17 if A16 scores < 0.958, otherwise A16 (the 10-19 rule, tie → A16;
+  `docs/phase4_notes.md`). Re-decide with `/kg-final` if the hosts rule on OAI.
 - Use the GPU quota that expires 2026-10-17 00:00 UTC only on pre-registered work.

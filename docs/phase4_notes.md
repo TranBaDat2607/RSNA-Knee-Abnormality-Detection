@@ -588,7 +588,7 @@ The flat training losses seen on 10-19 meant what they looked like: the fully fi
 recipe. **V2 is closed** (ledger `0018_v2-gold58`: discard). No A19 is built. Every own or new-public leg tested in phase 4
 (S6T, R6 swap, V1, VJ, VJf, V2) has failed its gate; the OAI pick stays A16 (`57461357`, 0.958) and the clean hedge C3.
 
-## 2026-10-21 16:50 UTC: A19, more Raptor-384 checkpoints averaged into A16's strongest leg (pre-registered before any run)
+## 2026-10-21 15:35 UTC: A19, more Raptor-384 checkpoints averaged into A16's strongest leg (pre-registered before any run)
 
 **Why.** The public pool has no new family left (watch 10-21 14:40 UTC; `rsna-gold-medal`'s 0.958 belongs to an older
 version, its current code is the 0.943 clean stack). Since 10-20, three public datasets have released *re-trained*

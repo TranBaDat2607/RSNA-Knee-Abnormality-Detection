@@ -654,3 +654,14 @@ through the A19 kernel = `gold_acc` (0.9229, ρ 1.000).
 A19 = A16 with the 384 slot = rank mean(nartaa 384, cohort): gold 0.9406 vs A16 0.9385 (+0.0021, CI [−0.0027, +0.0075]);
 guard passes. Per finding: Synovitis +0.020, MCL +0.014, Contusion/Fracture −0.007. Gold time on 58 studies: cohort 97 s vs
 nartaa 116 s, so the member stage is ≈ 45–50 min on 1,322 studies. Dev run `rsna-knee-oai-a19` v1 pushed 16:32 UTC.
+
+## 2026-10-21 16:40 UTC: A21 = A19 + A20, our full ensemble (pre-registered before any A21 number and before any A19/A20 score)
+
+A21 = A16 with A19's 384 slot (rank mean of nartaa 384 and cohort) and A20's S6 slot at 1/3:
+final = 2/3 × A19 + 1/3 × rank(½ rank(s6fall) + ½ rank(S6T)). Same code as A19 (member stage after R6, merge before stage 3)
+followed by A17's s6fall stage with A20's S6T hook and A20's blend. Runtime ≈ A16 + 0.8 h (cohort) + 1.5 h (s6fall)
++ 0.85 h per S6T seed; every extra is guarded (member ≥ 135 min left; s6fall ≥ 70 min; S6T seeds 2/1/0 by the time left),
+so a late run degrades to A19 + s6fall, A19, or A16, never to a failure. Guard: A21 gold-58 ≥ A16 − 0.003.
+Submit if the guard and the dev run pass (same checks as A19 and A20). **Pick rule (fixed now):** among A19, A20 and A21,
+the highest public score replaces A16 as the OAI pick only if it is strictly above 0.958; ties among them → A21
+(most legs and label sources), and a tie with 0.958 keeps A16.

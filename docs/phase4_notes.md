@@ -676,3 +676,8 @@ miss, as in A16/A17); `NOTEBOOK_COMPLETE`; `kgkit validate` OK. **Submitted 2026
 **A20 dev run v1 passed** (queued until 16:45, done 16:59 UTC): Raptor 384/224, R6 flip 3/3, 0 fallback, Part B 3 checkpoints;
 `S6T_ATTACH True seeds 2` (the `--models2` path works in s6fall's launcher), `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`
 3/3, `A20_BLEND_DONE` s6fall 3, S6T 3; `kgkit validate` OK. **Submitted 2026-10-21 17:00 UTC (ledger `0019_a20-oai`).**
+
+**A21 dev run v1 passed** (16:45–17:07 UTC): cohort member rc 0, `A19_SLOT_DONE`, R6 flip 3/3, 0 fallback, Part B 3 checkpoints,
+`S6T_ATTACH True seeds 2`, `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`, `A20_BLEND_DONE` 3/3; `kgkit validate` OK.
+**Submitted 2026-10-21 17:08 UTC (ledger `0021_a21-oai`).** Hidden-test runtime ≈ A16 + 0.8 + 1.5 + 0.85 per S6T seed; the S6T
+guard drops to one seed (or none) if s6fall starts with < 3.65 h left, so the expected worst case is A19 + s6fall + 1 seed.

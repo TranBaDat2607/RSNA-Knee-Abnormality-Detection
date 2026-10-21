@@ -665,3 +665,6 @@ so a late run degrades to A19 + s6fall, A19, or A16, never to a failure. Guard: 
 Submit if the guard and the dev run pass (same checks as A19 and A20). **Pick rule (fixed now):** among A19, A20 and A21,
 the highest public score replaces A16 as the OAI pick only if it is strictly above 0.958; ties among them → A21
 (most legs and label sources), and a tie with 0.958 keeps A16.
+
+**A21 guard (`analysis/a21_gate.py`, read once, 16:33 UTC): PASS.** A21 0.9428 vs A16 0.9385 (+0.0043, CI [−0.0022, +0.0110]),
+A19 0.9406. The highest gold-58 of any blend so far (A12 0.9406), still inside gold-58's noise. Dev run pushed.

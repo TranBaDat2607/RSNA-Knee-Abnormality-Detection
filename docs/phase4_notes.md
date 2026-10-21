@@ -617,7 +617,7 @@ or < 90 % coverage, the slot keeps the members that finished, down to nartaa 384
 **Submit** if the member rule yields ≥ 1 member, the guard holds and the dev run passes. A19 replaces A16 as the OAI pick
 only if its public score is strictly above 0.958.
 
-## 2026-10-21 16:10 UTC: A20, our own S6T inside A17's S6 slot (pre-registered before any A20 number)
+## 2026-10-21 16:00 UTC: A20, our own S6T inside A17's S6 slot (pre-registered before any A20 number)
 
 **Why (user direction 10-21: "create your own solution from all past experiments").** Our models alone top out at gold
 0.90–0.93 (R3/R5t, ftC5o, S6T, V1, V2), so a standalone own pipeline cannot reach 0.958 by the deadline. What our
@@ -637,3 +637,7 @@ dataset `tranbadat/rsna-knee-s6t-weights` (sha s7 `242b37df…`, s8 `b16d32ee…
 **Dev run** must show `S6T_ATTACH True`, 3 logit rows per study, the A20 blend done, and `kgkit validate` OK.
 **Submit** if guard and dev run pass. A20 replaces A16 as the OAI pick only if its public score is strictly above 0.958;
 if A19 and A20 both are, the higher public score; a tie between them → A20.
+
+**A20 guard (`analysis/a20_gate.py`, read once, 16:03 UTC): PASS.** S6T 0.9315 (ρ s6fall 0.945, Raptor half 0.900, R6 flip 0.898);
+A20 0.9396 vs A16 0.9387 (+0.0009, CI [−0.0039, +0.0056]) and A17 0.9395 (+0.0001). As expected, gold-58 cannot tell
+A20 from A17; the case for A20 is label diversity in the S6 slot, not a gold gain. Dev run `rsna-knee-oai-a20` v1 pushed 16:05 UTC.

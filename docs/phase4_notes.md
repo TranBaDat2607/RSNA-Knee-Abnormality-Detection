@@ -616,3 +616,24 @@ unchanged (0.65/0.35 with the 224 model, per-finding Raptor weights against R6 f
 or < 90 % coverage, the slot keeps the members that finished, down to nartaa 384 alone (= A16).
 **Submit** if the member rule yields ≥ 1 member, the guard holds and the dev run passes. A19 replaces A16 as the OAI pick
 only if its public score is strictly above 0.958.
+
+## 2026-10-21 16:10 UTC: A20, our own S6T inside A17's S6 slot (pre-registered before any A20 number)
+
+**Why (user direction 10-21: "create your own solution from all past experiments").** Our models alone top out at gold
+0.90–0.93 (R3/R5t, ftC5o, S6T, V1, V2), so a standalone own pipeline cannot reach 0.958 by the deadline. What our
+experiments showed works is a strong leg with different *labels or pipeline* inside the public stack (s6fall: A10 → A12
++0.001; teach4opus labels: every fine-tune +0.005 on gold; ftC5o: C2 → C3 +0.001). Our strongest own model is **S6T**
+(heliosli's S6 recipe retrained by us on our `teach4opus` labels, gold-58 excluded from training; gold 0.9315). It failed
+A13's gate only because A12 already holds s6fall (ρ 0.945). A16 has no S6-family model, and A17 adds s6fall alone. A20
+gives that slot two label sources: nartaa's labels (s6fall) and ours (S6T).
+
+**Form (fixed now).** A20 = A17 with the S6 slot = rank(½ rank(s6fall) + ½ rank(S6T)); final = 2/3 × A16 + 1/3 × slot.
+S6T = mean logit of its seeds (2 if the time guard allows, else 1, else none). A study S6T did not score takes s6fall's
+rank (= A17). S6T coverage < 90 % or any S6T problem keeps A17's file; any s6fall problem keeps A16's (A17's own rule).
+**Code.** A13's hook unchanged in substance (S6T as `--models2` in s6fall's `compact_infer` call, `--w2 0`, logit rows
+split out before s6fall's strict checks), now choosing 2, 1 or 0 seeds by the time left. Weights from the new private
+dataset `tranbadat/rsna-knee-s6t-weights` (sha s7 `242b37df…`, s8 `b16d32ee…` = the 10-16 training outputs).
+**Guard (gold-58, regression only).** A20 ≥ A16 − 0.003, from the existing gold legs (`gold_s6t.csv`, `gold_s6fall.csv`).
+**Dev run** must show `S6T_ATTACH True`, 3 logit rows per study, the A20 blend done, and `kgkit validate` OK.
+**Submit** if guard and dev run pass. A20 replaces A16 as the OAI pick only if its public score is strictly above 0.958;
+if A19 and A20 both are, the higher public score; a tie between them → A20.

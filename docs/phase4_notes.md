@@ -641,3 +641,16 @@ if A19 and A20 both are, the higher public score; a tie between them → A20.
 **A20 guard (`analysis/a20_gate.py`, read once, 16:03 UTC): PASS.** S6T 0.9315 (ρ s6fall 0.945, Raptor half 0.900, R6 flip 0.898);
 A20 0.9396 vs A16 0.9387 (+0.0009, CI [−0.0039, +0.0056]) and A17 0.9395 (+0.0001). As expected, gold-58 cannot tell
 A20 from A17; the case for A20 is label diversity in the S6 slot, not a gold gain. Dev run `rsna-knee-oai-a20` v1 pushed 16:05 UTC.
+
+**A19 gate result (`analysis/a19_gate.py`, read once, 16:30 UTC): PASS, one member (`cohort`).** Harness: nartaa 384 run
+through the A19 kernel = `gold_acc` (0.9229, ρ 1.000).
+
+| checkpoint | coverage | gold-58 | ρ vs nartaa 384 | result |
+|---|---|---|---|---|
+| fullb (ephemeralbyte) | 1.000 | 0.9120 | 0.918 | fails rule 2 (< 0.925) |
+| **cohort** (manatoshoji `coatnet_384_full_cohort_swa`) | 1.000 | **0.9296** | **0.904** | **member** |
+| bs14 (manatoshoji) | 0.000 | 0.527 | 0.05 | fails rule 1: non-finite fp16 logits on every study |
+
+A19 = A16 with the 384 slot = rank mean(nartaa 384, cohort): gold 0.9406 vs A16 0.9385 (+0.0021, CI [−0.0027, +0.0075]);
+guard passes. Per finding: Synovitis +0.020, MCL +0.014, Contusion/Fracture −0.007. Gold time on 58 studies: cohort 97 s vs
+nartaa 116 s, so the member stage is ≈ 45–50 min on 1,322 studies. Dev run `rsna-knee-oai-a19` v1 pushed 16:32 UTC.

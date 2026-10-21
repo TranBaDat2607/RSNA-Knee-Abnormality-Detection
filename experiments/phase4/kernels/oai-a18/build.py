@@ -2,7 +2,7 @@
 
     python build.py <rsna-knee-oai-a16.ipynb> <fp16|fp32>
 
-A16's cells are unchanged. Two cells are appended after Part B: the VJ stage (the author's infer.py imported unchanged,
+A16's cells are unchanged. Two cells are appended after Part B: the VJ stage (the author's infer.py with the VJf slice-reread fix,
 one worker process per T4, 5-fold mean probability at the precision the gate picked; starts only with >= 75 min left,
 stops 25 min before the 9 h limit) and the blend: final = 3/4 x rank(A16) + 1/4 x rank(VJ). Any failure, or VJ scoring
 fewer than 90 % of the studies, keeps A16's file.
@@ -23,20 +23,55 @@ try:
 except ImportError:
     pass
 sys.path.append(ds)
-import infer                                         # unchanged author code
+import types
+_src = open(ds + '/infer.py').read()
+_OLD1 = "headers = _ordered_datasets([pydicom.dcmread(path, stop_before_pixels=True) for path in files])"
+_OLD2 = "pydicom.dcmread(ds.filename)"
+assert _src.count(_OLD1) == 1 and _src.count(_OLD2) == 1, 'infer.py changed'
+_src = _src.replace(_OLD1, "headers = _vj_ordered_headers(files)").replace(_OLD2, "pydicom.dcmread(_VJ_PATHS[id(ds)])")
+_src += """
+
+_VJ_PATHS = {}
+
+
+def _vj_ordered_headers(files):
+    # headers only, ordered by _ordered_datasets' own IPP rule; each header remembers its file for the pixel re-read
+    hs = []
+    for path in files:
+        h = pydicom.dcmread(path, stop_before_pixels=True)
+        _VJ_PATHS[id(h)] = path
+        hs.append(h)
+    if len(hs) <= 1:
+        return hs
+    try:
+        ipp = np.asarray([list(map(float, h.ImagePositionPatient)) for h in hs])
+        axis = int(np.argmax(np.ptp(ipp, axis=0)))
+        return [hs[i] for i in np.argsort(ipp[:, axis])]
+    except Exception:
+        return hs
+"""
+infer = types.ModuleType('infer')
+infer.__file__ = ds + '/infer.py'
+sys.modules['infer'] = infer
+exec(compile(_src, ds + '/infer.py', 'exec'), infer.__dict__)   # the author's infer.py with the slice-reread fix (VJf)
 uids = [u for u in open(uid_file).read().split() if u]
 ser = pd.read_csv(comp / 'test_series.csv', dtype={'StudyInstanceUID': str})
 by = {str(u): g for u, g in ser.groupby('StudyInstanceUID', sort=False)}
 ckpts = sorted(Path(ds).glob('f*_best.pt'))
 assert len(ckpts) == 5, ckpts
 models = [infer.load_model(c) for c in ckpts]
+from concurrent.futures import ThreadPoolExecutor
+_pool = ThreadPoolExecutor(1)                        # decode the next study while the GPU runs this one (same outputs)
+_load = lambda u: infer.load_study_tensor(comp, u, by.get(u))
+_fut = _pool.submit(_load, uids[0]) if uids else None
 done, P, t0 = [], [], time.time()
 for i, u in enumerate(uids):
     if time.time() > deadline:
         print('VJ worker deadline after %d studies' % i, flush=True)
         break
     try:
-        gray, present = infer.load_study_tensor(comp, u, by.get(u))
+        _cur, _fut = _fut, (_pool.submit(_load, uids[i + 1]) if i + 1 < len(uids) else None)
+        gray, present = _cur.result()
         x = torch.from_numpy(gray).unsqueeze(0).cuda()
         p = torch.from_numpy(present).unsqueeze(0).cuda()
         with torch.inference_mode(), torch.autocast('cuda', dtype=torch.float16, enabled=(prec == 'fp16')):

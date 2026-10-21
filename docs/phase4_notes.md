@@ -515,3 +515,44 @@ A16's file.
 
 A18 is submitted if the gate holds and its dev run on the 3-row test passes. **A18 replaces A16 as the OAI pick only if
 its public score is strictly above 0.958.**
+
+**VJ gate result (`analysis/vj_gate.py`, read once, 10:20 UTC 10-21): FAIL (rules 1 and 4).** The gold kernel
+(`rsna-knee-vj-gold58` v1, 12 min on 2×T4) ran cleanly: the image's einops, 5 folds loaded in 174 s, no NaN, fp16 vs fp32
+max |Δp| 0.0026, so fp16 is the deployment precision.
+
+| | gold-58 macro | note |
+|---|---|---|
+| VJ (5-fold mean, fp16) | **0.539** | folds 0.516–0.543 (leak guard passes trivially) |
+| ρ VJ vs Raptor half / R6 flip / s6fall | 0.150 / 0.150 / 0.146 | |
+| A18 = 3/4 A16 + 1/4 VJ | 0.9180 vs A16 0.9387 | −0.0207, CI [−0.0341, −0.0081] |
+| VJ stage, projected | 8.98 s/study/worker (decode 6.6 + fp16 2.4) → 1.90 h | rule 5 passes (7.2 h) |
+
+**A18 is not submitted** (ledger `0016_vj-gold58`, discard). Its dev run (`rsna-knee-oai-a18` v1) did pass the integration
+check (VJ stage 370 s, 3/3 scored, `A18_BLEND_DONE`), so the code path itself works.
+**Why VJ is near chance:** its workers report 1.84 views present per gold study, while the series table offers 4.69 of
+its five (plane, fluid) views per gold study. The author's `_load_source_slices` fails on most series and
+`load_study_tensor` swallows the exception, so the model mostly sees zero tensors. A CPU-only diagnostic kernel
+(`rsna-knee-vj-diag`, no labels read) is checking whether this is an environment failure (e.g. a DICOM decoder) that a
+harness fix would remove. Any re-test after such a fix is a new pre-registered experiment, not a re-read of this gate.
+
+**Diagnostic result (`rsna-knee-vj-diag`, CPU, 12 gold studies, no labels read):** all 57 candidate series are uncompressed
+(explicit VR little endian), so codecs are not the issue. **Every series with more than 24 files fails** in the author's
+`_load_source_slices` at `pydicom.dcmread(ds.filename)` with `TypeError: dcmread: Expected a file path, file-like or
+readable buffer, but got FileDataset` (the image's pydicom); 37 of 57 series. Series with ≤ 24 files decode fine (20 of 57).
+So the 0.539 measured a broken harness: the model saw zero tensors for about 60 % of its views.
+
+## 2026-10-21: VJf, the same VJ leg with the slice-reread bug fixed (pre-registered before any VJf run)
+
+**Change (harness only).** Reproduced locally on a synthetic 30-slice series: in the >24-file branch the author passes
+header *datasets* to `_ordered_datasets`, which expects *paths* and calls `dcmread` on them again (the TypeError). `infer.py`
+is loaded from the dataset with two text replacements, each asserted to occur exactly once: that call becomes
+`_vj_ordered_headers(files)` (headers only, ordered by `_ordered_datasets`' own IPP rule, each header remembering its
+path), and the pixel re-read of the 24 chosen slices uses that path. Checked locally: 24 distinct slices in position
+order; the ≤24-file branch is unchanged. Slice choice, ordering,
+crop, normalisation, model and folds stay exactly the author's. Nothing is chosen from gold labels; the fix follows from
+a label-free diagnostic. The deployed worker also prefetches the next study's decode in a thread while the GPU runs the
+current one (identical outputs, only faster); the gold kernel stays serial so its timing is a conservative projection.
+
+**Gate: VJ's five rules unchanged, read once (`analysis/vj_gate.py` on the `rsna-knee-vj-gold58` v2 outputs).**
+A18 (rebuilt with the fix) is submitted if the gate holds and its dev run passes; it replaces A16 as the OAI pick only if
+its public score is strictly above 0.958. If VJf fails, the V-JEPA line is closed.

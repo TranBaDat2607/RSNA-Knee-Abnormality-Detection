@@ -1,6 +1,6 @@
 """Build A20 = A17 with our S6T sharing the S6 slot with nartaa's s6fall (docs/phase4_notes.md, 2026-10-21 16:00 UTC).
 
-    python build.py <rsna-knee-oai-a17.ipynb>
+    python build.py <rsna-knee-oai-a17.ipynb> [name base_metadata.json]   (A21: the A19 notebook + A17's s6fall cells, see oai-a21)
 
 A17's cells are unchanged except the s6fall stage, which gets A13's hook: S6T (heliosli's S6 recipe retrained by us on
 teach4opus, gold-58 excluded) rides in s6fall's own compact_infer call as `--models2 ... --w2 0`, so s6fall's predictions
@@ -113,9 +113,11 @@ nb['cells'][1]['source'] = ("## A20: A17 with our S6T sharing the S6 slot with n
                             "A16's cells and A12's s6fall stage are unchanged; S6T (our retrain of heliosli's S6 recipe on our "
                             "teach4opus labels) rides in s6fall's own inference call. final = 2/3 x A16 + 1/3 x rank(1/2 rank(s6fall) "
                             "+ 1/2 rank(S6T)). Time-guarded, never fatal (A17's file stays on any S6T problem).")
-json.dump(nb, open('rsna-knee-oai-a20.ipynb', 'w', encoding='utf8'), indent=1)
-meta = json.load(open('../oai-a17/kernel-metadata.json'))
-meta.update(id='tranbadat/rsna-knee-oai-a20', title='rsna-knee-oai-a20', code_file='rsna-knee-oai-a20.ipynb')
-meta['dataset_sources'] = meta['dataset_sources'] + ['tranbadat/rsna-knee-s6t-weights']
+name = sys.argv[2] if len(sys.argv) > 2 else 'rsna-knee-oai-a20'
+json.dump(nb, open(name + '.ipynb', 'w', encoding='utf8'), indent=1)
+meta = json.load(open(sys.argv[3] if len(sys.argv) > 3 else '../oai-a17/kernel-metadata.json'))
+meta.update(id='tranbadat/' + name, title=name, code_file=name + '.ipynb')
+meta['dataset_sources'] = meta['dataset_sources'] + [d for d in ('nartaa/rsna-knee-s6fall-weights', 'tranbadat/rsna-knee-s6t-weights')
+                                                     if d not in meta['dataset_sources']]
 json.dump(meta, open('kernel-metadata.json', 'w'), indent=1)
-print('A20 cells', len(nb['cells']))
+print(name, 'cells', len(nb['cells']))

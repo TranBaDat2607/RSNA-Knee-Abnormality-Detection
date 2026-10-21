@@ -556,3 +556,18 @@ current one (identical outputs, only faster); the gold kernel stays serial so it
 **Gate: VJ's five rules unchanged, read once (`analysis/vj_gate.py` on the `rsna-knee-vj-gold58` v2 outputs).**
 A18 (rebuilt with the fix) is submitted if the gate holds and its dev run passes; it replaces A16 as the OAI pick only if
 its public score is strictly above 0.958. If VJf fails, the V-JEPA line is closed.
+
+**VJf gate result (`analysis/vj_gate.py` on `rsna-knee-vj-gold58` v2, read once, 10:52 UTC): FAIL (rules 1 and 4).**
+The fix works: 4.69 views present per gold study (= the series table), decode 2.6 s/study, fp16 vs fp32 max |Δp| 0.0023.
+
+| | gold-58 macro | note |
+|---|---|---|
+| VJf (5-fold mean, fp16) | **0.800** | folds 0.775–0.798; best Contusion 0.923, Medial OA 0.909, Effusion 0.898; MCL 0.655 |
+| ρ VJf vs Raptor half / R6 flip / s6fall | 0.762 / 0.700 / 0.708 | the most decorrelated leg we have measured |
+| A18 = 3/4 A16 + 1/4 VJf | 0.9232 vs A16 0.9387 | −0.0155, CI [−0.0244, −0.0085]; every finding ≤ 0 |
+| VJf stage, projected | 5.0 s/study/worker → 1.06 h (+ up to 10 min model load) | rule 5 passes |
+
+V-JEPA is a real, very decorrelated model but far too weak (0.80 against 0.93 for each A16 leg), so it costs gold at the
+pre-registered weight. **The V-JEPA line is closed** (ledger `0016_vj-gold58`, `0017_vjf-gold58`: discard; A18 v2 dev run
+passed the integration check and is not submitted). We will not search for a smaller weight on gold-58 (rule: gold-58 is
+not used to tune weights).

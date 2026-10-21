@@ -571,3 +571,19 @@ V-JEPA is a real, very decorrelated model but far too weak (0.80 against 0.93 fo
 pre-registered weight. **The V-JEPA line is closed** (ledger `0016_vj-gold58`, `0017_vjf-gold58`: discard; A18 v2 dev run
 passed the integration check and is not submitted). We will not search for a smaller weight on gold-58 (rule: gold-58 is
 not used to tune weights).
+
+## 2026-10-21: V2 gate result (read once, `analysis/v2_gate.py gate`, 14:45 UTC): FAIL (rules 1 and 3)
+
+Kernel `rsna-knee-v2-gold58` v1 (gate mode, stride 1, all four finished seeds: GPU 11, 12 from `v2-train`, TPU 13, 14 from
+`v2-tpu-train`; 58 of 58 studies, no failures, 13 min wall on 2×T4). The rules are those of the 10-17 pre-registration;
+its "A16" is the 10-17 name for 3/4 × A12 + 1/4 × rank(V2), not the later public-0.9586 fork.
+
+| | gold-58 macro | note |
+|---|---|---|
+| V2 (4-seed mean logit) | **0.714** | seeds 0.557 / 0.642 / 0.637 / 0.739 (s11–s14); best Effusion 0.899, Lateral OA 0.882 |
+| ρ V2 vs raptor / R7 / s6fall | 0.451 / 0.399 / 0.418 | rule 2 passes only because the leg is close to noise |
+| 3/4 A12 + 1/4 V2 | 0.9336 vs A12 0.9404 | −0.0068; rule 3 fails |
+
+The flat training losses seen on 10-19 meant what they looked like: the fully fine-tuned ViT-S never learned under this
+recipe. **V2 is closed** (ledger `0018_v2-gold58`: discard). No A19 is built. Every own or new-public leg tested in phase 4
+(S6T, R6 swap, V1, VJ, VJf, V2) has failed its gate; the OAI pick stays A16 (`57461357`, 0.958) and the clean hedge C3.

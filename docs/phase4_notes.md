@@ -668,3 +668,7 @@ the highest public score replaces A16 as the OAI pick only if it is strictly abo
 
 **A21 guard (`analysis/a21_gate.py`, read once, 16:33 UTC): PASS.** A21 0.9428 vs A16 0.9385 (+0.0043, CI [−0.0022, +0.0110]),
 A19 0.9406. The highest gold-58 of any blend so far (A12 0.9406), still inside gold-58's noise. Dev run pushed.
+
+**A19 dev run v1 passed** (16:32–16:44 UTC): Raptor 384 (93 s), member `cohort` rc 0 (42 s), `A19_SLOT_DONE` (0 no-model
+studies), R6 flip 3/3 scored, 0 fallback; Part B blended 3 reader checkpoints (the known offline `pylibjpeg-libjpeg` pip
+miss, as in A16/A17); `NOTEBOOK_COMPLETE`; `kgkit validate` OK. **Submitted 2026-10-21 16:45 UTC (ledger `0020_a19-oai`).**

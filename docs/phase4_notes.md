@@ -587,3 +587,32 @@ its "A16" is the 10-17 name for 3/4 × A12 + 1/4 × rank(V2), not the later publ
 The flat training losses seen on 10-19 meant what they looked like: the fully fine-tuned ViT-S never learned under this
 recipe. **V2 is closed** (ledger `0018_v2-gold58`: discard). No A19 is built. Every own or new-public leg tested in phase 4
 (S6T, R6 swap, V1, VJ, VJf, V2) has failed its gate; the OAI pick stays A16 (`57461357`, 0.958) and the clean hedge C3.
+
+## 2026-10-21 16:50 UTC: A19, more Raptor-384 checkpoints averaged into A16's strongest leg (pre-registered before any run)
+
+**Why.** The public pool has no new family left (watch 10-21 14:40 UTC; `rsna-gold-medal`'s 0.958 belongs to an older
+version, its current code is the 0.943 clean stack). Since 10-20, three public datasets have released *re-trained*
+Raptor CoAtNet-384 checkpoints of the same format as nartaa's 384 model (A16's main leg): `ephemeralbyte/rsna-knee-fullb-w`
+`raptor_ft_oai384_fullb_swa.pt` (sha `900dddb5…`), `manatoshoji03/rsna-knee-coat-extra2` `coatnet_384_full_cohort_swa.pt`
+(`755ee7dd…`), `manatoshoji03/rsna-knee-coat-extra` `raptor_ft_coat384_full_bs14.pt` (`df66a00b…`). As separate legs they
+fail rule ρ (same family). As extra members of the Raptor-384 slot they are checkpoint averaging: the textbook variance
+reduction, which needs no decorrelated family. A2 (+0.000 on the LB) is the honest prior: the expected gain is small.
+Audit: each file is a pickle of tensors only (globals: OrderedDict, FloatStorage, LongStorage, _rebuild_tensor_v2; read
+with `pickletools`, nothing executed); key `model` with Raptor key names; no `arch`/`res`, so the script's defaults
+(`coatnet_rmlp_2_rw_384`, 384) apply. Code: A16's own Raptor-384 script (nartaa, audited 10-19) with only the checkpoint
+name and SHA pins swapped, and gold-root / output names for the gold kernel.
+
+**Gold kernel (`rsna-knee-a19-gold58`).** Runs that script on the 58 gold studies for nartaa's 384 (reference: must match
+`gold_acc` in ranks, ρ ≥ 0.99) and each of the three checkpoints.
+
+**Member rule (read once, `analysis/a19_gate.py`).** A checkpoint is a member if (1) it loads strictly and scores ≥ 95 %
+of the gold studies, (2) gold-58 ≥ 0.925, (3) gold-58 < 0.975 (leak guard; "full" fits may have trained on the gold
+studies), (4) ρ vs nartaa 384 ≤ 0.995 (not a byte-level twin). Members are taken in the fixed order fullb → cohort_swa →
+bs14, **at most 2** (runtime).
+**Blend (fixed now).** Raptor-384 slot = equal-weight rank mean of nartaa 384 and the members. Everything else is A16
+unchanged (0.65/0.35 with the 224 model, per-finding Raptor weights against R6 flip, goodpjw reader).
+**Guard.** A19 gold-58 ≥ A16 − 0.003 (regression guard only; gold-58 cannot resolve the expected gain).
+**Runtime.** Each member stage runs only with ≥ 100 min left before 9 h and has its own subprocess timeout. On any failure,
+or < 90 % coverage, the slot keeps the members that finished, down to nartaa 384 alone (= A16).
+**Submit** if the member rule yields ≥ 1 member, the guard holds and the dev run passes. A19 replaces A16 as the OAI pick
+only if its public score is strictly above 0.958.

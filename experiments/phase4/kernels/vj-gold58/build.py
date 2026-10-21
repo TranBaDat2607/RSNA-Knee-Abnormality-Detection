@@ -1,4 +1,4 @@
-"""VJ gold-58 kernel: nurikw3's V-JEPA 2.1 5-fold checkpoints on the 58 gold studies (rules: docs/phase4_notes.md, VJ).
+"""VJ gold-58 kernel (v2 = VJf: slice-reread fix, docs/phase4_notes.md): nurikw3's V-JEPA 2.1 5-fold checkpoints on the 58 gold studies (rules: docs/phase4_notes.md, VJ).
 
     python build.py <oai_gold58_notebook.ipynb>
 
@@ -30,7 +30,37 @@ try:
 except ImportError:
     print('einops: image has none, using the dataset copy', flush=True)
 sys.path.append(ds)
-import infer                                         # unchanged author code (adds its own dir and vjepa2/ to sys.path)
+import types
+_src = open(ds + '/infer.py').read()
+_OLD1 = "headers = _ordered_datasets([pydicom.dcmread(path, stop_before_pixels=True) for path in files])"
+_OLD2 = "pydicom.dcmread(ds.filename)"
+assert _src.count(_OLD1) == 1 and _src.count(_OLD2) == 1, 'infer.py changed'
+_src = _src.replace(_OLD1, "headers = _vj_ordered_headers(files)").replace(_OLD2, "pydicom.dcmread(_VJ_PATHS[id(ds)])")
+_src += """
+
+_VJ_PATHS = {}
+
+
+def _vj_ordered_headers(files):
+    # headers only, ordered by _ordered_datasets' own IPP rule; each header remembers its file for the pixel re-read
+    hs = []
+    for path in files:
+        h = pydicom.dcmread(path, stop_before_pixels=True)
+        _VJ_PATHS[id(h)] = path
+        hs.append(h)
+    if len(hs) <= 1:
+        return hs
+    try:
+        ipp = np.asarray([list(map(float, h.ImagePositionPatient)) for h in hs])
+        axis = int(np.argmax(np.ptp(ipp, axis=0)))
+        return [hs[i] for i in np.argsort(ipp[:, axis])]
+    except Exception:
+        return hs
+"""
+infer = types.ModuleType('infer')
+infer.__file__ = ds + '/infer.py'
+sys.modules['infer'] = infer
+exec(compile(_src, ds + '/infer.py', 'exec'), infer.__dict__)   # the author's infer.py with the slice-reread fix (VJf)
 uids = open(uid_file).read().split()
 ser = pd.read_csv(comp / 'test_series.csv', dtype={'StudyInstanceUID': str})
 by = {str(u): g for u, g in ser.groupby('StudyInstanceUID', sort=False)}

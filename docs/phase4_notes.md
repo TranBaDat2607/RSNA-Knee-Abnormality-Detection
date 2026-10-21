@@ -672,3 +672,7 @@ A19 0.9406. The highest gold-58 of any blend so far (A12 0.9406), still inside g
 **A19 dev run v1 passed** (16:32–16:44 UTC): Raptor 384 (93 s), member `cohort` rc 0 (42 s), `A19_SLOT_DONE` (0 no-model
 studies), R6 flip 3/3 scored, 0 fallback; Part B blended 3 reader checkpoints (the known offline `pylibjpeg-libjpeg` pip
 miss, as in A16/A17); `NOTEBOOK_COMPLETE`; `kgkit validate` OK. **Submitted 2026-10-21 16:45 UTC (ledger `0020_a19-oai`).**
+
+**A20 dev run v1 passed** (queued until 16:45, done 16:59 UTC): Raptor 384/224, R6 flip 3/3, 0 fallback, Part B 3 checkpoints;
+`S6T_ATTACH True seeds 2` (the `--models2` path works in s6fall's launcher), `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`
+3/3, `A20_BLEND_DONE` s6fall 3, S6T 3; `kgkit validate` OK. **Submitted 2026-10-21 17:00 UTC (ledger `0019_a20-oai`).**

@@ -476,3 +476,42 @@ the notebook is cell-for-cell identical to `kernels/oai-a16`. `kgkit validate`: 
 - A16 > 0.958 → A16 is the pick.
 
 The clean-track hedge stays C3 (0.946). Final picks: the OAI pick from this rule + C3, unless `/kg-final` says otherwise.
+
+**A16 result (`57461357`): public 0.958**, a tie with A17 at 3 decimals. By the tie rule above, **A16 is the OAI pick**
+(ledger `0015_a16-oai`, keep; accepted baseline). No public notebook scores above 0.958 (search 10-21 09:40 UTC:
+goodpjw 0.958, heliosli 0.9586, evgendvorkin `rsna-versia-7` 0.958 (same legs as A16: nartaa SWA, R6, R7, goodpjw reader),
+lavinwins `rsna-gold-medal` (the 0.943 clean stack with a reworked combination layer; its 0.958 badge is from another
+version) and `top-1-gold` (a training notebook)).
+
+## 2026-10-21: VJ, nurikw3's V-JEPA 2.1 5-fold checkpoints as a fourth-family leg (pre-registered before any VJ code ran)
+
+**What it is.** `nurikw3/rsna-knee-vjepa21-checkpoints` (public, 2026-10-19, 237 downloads, no public notebook uses it):
+five folds of a V-JEPA 2.1 ViT-B video encoder (`vit_base`, patch 16, tubelet 2, RoPE), fully fine-tuned, with a
+2-layer spatial/slice transformer MIL head. Input: 5 views (Ax FS, Sag non-FS, Cor FS, Sag FS, Cor non-FS) × 16 slices at
+320 px, 150 mm centre crop, no laterality normalisation. Every A16 leg is a CNN or CoAtNet; V1 showed that a ViT family is
+decorrelated from them (ρ 0.84–0.89), so this is the first public candidate for the lever that worked (A12).
+**Audit (10-21):** the five `vjepa2/` source files match the upstream sha256 manifest; imports are torch, timm and einops
+only; no network, subprocess or exec calls in `infer.py`, `finetune_model.py` or `vjepa2/`. **Unknown:** how it was
+trained (no notebook, no description): the gold-58 studies may be in its training folds, so the gold read gets a leak guard.
+Two weight sets we also checked and dropped: `neronrx/mycelis-rsna-knee-4fold-hive` (its own OOF on the 58 gold studies
+scores 0.596 against train.csv, i.e. broken) and `tensorhydra/rsna-knee-oai-weights` (Raptor fine-tuned on OAI, its own
+JSONs give gold 0.902 per fold, weaker than nartaa 384 0.923 and the same family).
+
+**Deployment form (fixed now).** The author's `infer.py` preprocessing and model unchanged, 5-fold mean of sigmoid
+probabilities, the studies split over the two T4s (one process per GPU). Precision: fp16 autocast (T4 has no bf16) if on
+the 58 gold studies max |p_fp16 − p_fp32| ≤ 0.01 with no NaN; otherwise fp32.
+
+**A18 (OAI)** = A16 unchanged + a VJ stage appended after A16's last cell: final = 3/4 × rank(A16 file) + 1/4 × rank(VJ).
+Time guard as in A12: the stage starts only with ≥ 75 min left and leaves 25 min; any failure or < 90 % coverage keeps
+A16's file.
+
+**Gate (`analysis/vj_gate.py`, read once).**
+1. VJ gold-58 (5-fold mean, deployment precision) ≥ 0.925.
+2. Leak guard: every single fold < 0.975 on gold-58 (a fold that trained on the gold labels would memorise them).
+3. Mean Spearman of VJ ≤ 0.90 against each of the Raptor half (0.65 n384 + 0.35 n224), R6 flip and s6fall.
+4. A18 from the gold legs ≥ A16 − 0.003 on gold-58 (A16 as in `a17_gate.py`).
+5. Runtime: A16's hidden-test run (≈ 5.3 h estimated from A14 ≤ 4.3 h + R6 flip + reader) + VJ stage projected from the
+   gold timing (s/study per worker × 1,322 / 2 × 1.15) ≤ 8.0 h.
+
+A18 is submitted if the gate holds and its dev run on the 3-row test passes. **A18 replaces A16 as the OAI pick only if
+its public score is strictly above 0.958.**

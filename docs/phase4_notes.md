@@ -612,7 +612,7 @@ bs14, **at most 2** (runtime).
 **Blend (fixed now).** Raptor-384 slot = equal-weight rank mean of nartaa 384 and the members. Everything else is A16
 unchanged (0.65/0.35 with the 224 model, per-finding Raptor weights against R6 flip, goodpjw reader).
 **Guard.** A19 gold-58 ≥ A16 − 0.003 (regression guard only; gold-58 cannot resolve the expected gain).
-**Runtime.** Each member stage runs only with ≥ 100 min left before 9 h and has its own subprocess timeout. On any failure,
+**Runtime.** Each member stage runs after stage 2 (R6 flip), only with ≥ 135 min left before 9 h, and must end 60 min before it (amended 15:50 UTC, before any read: stricter than the 100 min first written, so the reader keeps its slot). On any failure,
 or < 90 % coverage, the slot keeps the members that finished, down to nartaa 384 alone (= A16).
 **Submit** if the member rule yields ≥ 1 member, the guard holds and the dev run passes. A19 replaces A16 as the OAI pick
 only if its public score is strictly above 0.958.

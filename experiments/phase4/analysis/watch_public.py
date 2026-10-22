@@ -13,7 +13,17 @@ from kagglesdk.search.types.search_enums import DocumentType, ListSearchContentO
 
 best = float(next((a for a in sys.argv[1:] if not a.startswith("--")), 0.957))
 seen = {}
-for q in ("rsna knee", "knee", "rsna knee 0.957", "rsna knee 0.958", "rsna knee 0.96", "knee gold"):
+# Notebooks attached to the competition count even without "knee" in the title (missed rsna-versia-7, top-1-gold on 10-21).
+from kaggle.api.kaggle_api_extended import KaggleApi  # noqa: E402
+_api = KaggleApi()
+_api.authenticate()
+comp = set()
+for page in range(1, 6):
+    ks = _api.kernels_list(competition="rsna-knee-abnormality-detection", sort_by="dateRun", page=page, page_size=100) or []
+    comp |= {str(k.ref).lower() for k in ks}
+    if len(ks) < 100:
+        break
+for q in ("rsna knee", "knee", "rsna", "rsna knee 0.957", "rsna knee 0.958", "rsna knee 0.959", "rsna knee 0.96", "knee gold"):
     for order in (O.LIST_SEARCH_CONTENT_ORDER_BY_VOTES, O.LIST_SEARCH_CONTENT_ORDER_BY_DATE_UPDATED):
         for att in range(3):
             try:
@@ -24,9 +34,10 @@ for q in ("rsna knee", "knee", "rsna knee 0.957", "rsna knee 0.958", "rsna knee 
                 docs = []
         for d in docs:
             s = d.kernel_document.best_public_score if d.kernel_document else None
-            if s and s < 1.0 and "knee" in (d.title or "").lower() + (d.slug or ""):
-                owner = d.owner_user.user_name if getattr(d, "owner_user", None) else "?"
-                seen[owner + "/" + d.slug] = (s, d.update_time, d.title, d.votes)
+            owner = d.owner_user.user_name if getattr(d, "owner_user", None) else "?"
+            ref = owner + "/" + (d.slug or "")
+            if s and s < 1.0 and ("knee" in (d.title or "").lower() + (d.slug or "") or ref.lower() in comp):
+                seen[ref] = (s, d.update_time, d.title, d.votes)
 recent = datetime.now(timezone.utc) - timedelta(days=3)
 rows = sorted(seen.items(), key=lambda kv: -kv[1][0])
 hits = [(k, v) for k, v in rows if v[0] >= best and v[1] and v[1].replace(tzinfo=timezone.utc) >= recent]

@@ -56,3 +56,7 @@ Phase 4 tested six more legs or swaps (S6T, R6 swap, V1, VJ, VJf, V2), and all o
 (`docs/phase4_notes.md`). No public notebook scores above 0.958 as of 10-21 14:40 UTC. A background watch checks every
 90 min until 22:00 UTC on 10-22. If a stronger public notebook passes an audit and its submission beats 0.958, it replaces
 A16 as pick 1, and this file is updated.
+
+**Update 2026-10-22 12:20 UTC.** A22 scored 0.958 (tie) and A23 0.957; both finished inside 9 h. Neither is strictly
+above 0.958, so the recommendation is unchanged: **A16 `57461357` + C3 `57186035`** (or A16 + A12 if the user accepts the
+OAI risk).

@@ -725,3 +725,17 @@ A21 0.9428; ρ(R6 plain, R6 flip) 0.998 on gold-58, so dropping flip barely move
 `NOTEBOOK_COMPLETE`, Part B 3 checkpoints, `S6T_ATTACH True seeds 2`, `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`,
 `A20_BLEND_DONE`; no fallback or skip lines; `kgkit validate` OK. **Submitted 2026-10-22 03:27 UTC:** A23 (ledger
 `0022_a23-oai`) and A22 (`0023_a22-oai`). Three submissions are left today; results expected about 12:00–13:00 UTC.
+
+**Results (read 2026-10-22 12:17 UTC).** Both completed inside the 9 h limit (no runtime error), between 11:08 and 12:17 UTC
+(≤ 8.8 h after submission, queueing included).
+
+| Submission | Public LB | Gold-58 |
+|---|---|---|
+| A22 `57507780` (A21 runtime-safe, R6 flip) | **0.958** | 0.9428 |
+| A23 `57507775` (A22 with R6 plain) | 0.957 | 0.9439 |
+
+**Pick rule applied:** neither is strictly above 0.958, so **A16 stays the OAI pick**. A22 is the fifth OAI blend at 0.958
+(A16, A17, A20, A22; heliosli's public notebook too): adding the cohort member, s6fall and our S6T on top of A16 moves nothing
+visible at 3 decimals. A23's 0.957 is one display step below, the same gap as R6 plain vs flip in A12/A14 → A16; it is within
+public-LB noise and gold-58 ranked A23 first, so gold-58 again failed to predict a ±0.001 public step.
+Ledger: `0023_a22-oai` lb 0.958 inconclusive, `0022_a23-oai` lb 0.957 discard, `0015_a16-oai` baseline.

@@ -681,3 +681,38 @@ miss, as in A16/A17); `NOTEBOOK_COMPLETE`; `kgkit validate` OK. **Submitted 2026
 `S6T_ATTACH True seeds 2`, `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`, `A20_BLEND_DONE` 3/3; `kgkit validate` OK.
 **Submitted 2026-10-21 17:08 UTC (ledger `0021_a21-oai`).** Hidden-test runtime ≈ A16 + 0.8 + 1.5 + 0.85 per S6T seed; the S6T
 guard drops to one seed (or none) if s6fall starts with < 3.65 h left, so the expected worst case is A19 + s6fall + 1 seed.
+
+## 2026-10-22 02:46 UTC: A19/A20/A21 results
+
+| Submission | Public | Status |
+|---|---|---|
+| A20 `57490753` (A17 + S6T in the S6 slot) | **0.958** | complete; tie with A16 → A16 stays (pick rule) |
+| A19 `57490320` (A16 + cohort in the 384 slot) | – | **"exceeded the allowed runtime"** (9 h) |
+| A21 `57490994` (A19 + A20) | – | **"exceeded the allowed runtime"** (9 h) |
+
+All three turned COMPLETE in the same 20-minute poll window (02:26–02:46 UTC), so A20 also ran close to 9 h. The two
+timeouts share one element: the cohort member stage, which sits after R6 and **before Part B**. Part B (goodpjw's reader)
+starts whenever less than 8.2 h has passed and its reader subprocess has **no timeout**, so the member's guard ("end 60 min
+before 9 h") did not bound the notebook. Hidden-test logs are not visible, so the exact split (a slow base, a slow Part B,
+or a member that hung on the full test, e.g. a Pool worker lost to host-OOM) cannot be read. The 3-decimal tie of A16,
+A17 and A20 is also what a skipped s6fall stage would give (s6fall needs ≥ 70 min left after Part B).
+
+## 2026-10-22 03:45 UTC: A22 and A23, runtime-safe forms of A21 (pre-registered before any A23 number)
+
+**A22** = A21 with runtime fixes only; when every stage finishes, its predictions are A21's (gold 0.9428, guard already passed):
+1. The cohort member runs in its own session (process group). It starts only with ≥ 1.5 × RAPTOR_SECONDS + 10 min + 120 min
+   left, and the whole group is killed at 1.5 × RAPTOR_SECONDS + 10 min (RAPTOR_SECONDS = the measured time of stage 1, the
+   same script with an equal-size checkpoint). A hang now costs at most that cap; the 384 slot stays A16's.
+2. Part B's reader subprocess gets a timeout that ends it 25 min before 9 h; on timeout Part B's own except-branch keeps the
+   stage-3 file. On a normal run nothing changes.
+3. s6fall + S6T as in A20/A21 (self-calibrating: ≥ 70 min to start, budget leaves 25 min, S6T seeds by the time left).
+
+**A23** = A22 with R6's flip TTA off (`FLIP_TTA = False`, R6 plain as in A12/A14). On the gold-58 steady state flip costs
+19.8 s/study/worker against 10.3 plain, ≈ 1.75 h on 1,322 studies; that is the room the member, s6fall and S6T need.
+Our own evidence: TTA gave nothing measurable (phase 3); decorrelated legs were the lever that worked. Guard (read once, from
+the gold legs, R6 plain = `gold_r6_plain.csv`): A23 gold-58 ≥ A16 − 0.003.
+
+Both: submit if the guard and a dev run on the 3-row test pass (markers `A22_MEMBER`/merge, R6 scored 3/3, Part B ran,
+`A20_BLEND_DONE`, `kgkit validate` OK). **Pick rule (fixed now):** among A22 and A23 (A20 is 0.958), the highest public score
+replaces A16 as the OAI pick only if it is strictly above 0.958; a tie between A22 and A23 → A22 (it keeps A16's R6 flip);
+a tie with 0.958 keeps A16.

@@ -47,6 +47,11 @@ submission (ρ 0.980 with A16, against 0.989 for A17). It has the best gold-58, 
 weights. It protects against those weights losing their public edge on the private 70 %. A17 is not a good second pick:
 two thirds of it is A16.
 
+**Update 2026-10-22 03:30 UTC.** A20 (A17 + our S6T) scored 0.958, a tie, so A16 stays pick 1. A19 and A21 exceeded the
+9 h limit on the hidden test (no score). Their runtime-safe forms A22 (= A21, every extra capped) and A23 (A22 with R6 plain)
+are grading, with results expected about 12:00–13:00 UTC. If either is strictly above 0.958, it replaces A16 as pick 1
+(A22 on a tie between them), and this file will say so.
+
 Phase 4 tested six more legs or swaps (S6T, R6 swap, V1, VJ, VJf, V2), and all of them failed their pre-registered gates
 (`docs/phase4_notes.md`). No public notebook scores above 0.958 as of 10-21 14:40 UTC. A background watch checks every
 90 min until 22:00 UTC on 10-22. If a stronger public notebook passes an audit and its submission beats 0.958, it replaces

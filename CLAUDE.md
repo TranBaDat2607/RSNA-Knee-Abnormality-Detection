@@ -20,6 +20,8 @@ every study has a free-text report, which this repo turns into training targets 
 |---|---|---|---|
 | OAI-track pick | A16 `57461357` | **0.958** | public 0.9586 notebook unchanged; tie with A17 → A16 (10-19 rule) |
 | OAI-track | A17 `57401136` | **0.958** | A16 + nartaa s6fall third leg; rank 382 / 6,300 (1,448 tied at 0.958) |
+| OAI-track | A20 `57490753` | 0.958 | A17 + our S6T in the S6 slot; tie → A16 stays |
+| Grading (10-22 03:27 UTC) | A22 / A23 | – | runtime-safe A21 (cohort + s6fall + S6T); A23 with R6 plain; A19/A21 hit the 9 h limit |
 | Previous OAI pick | A12 `57197656` | 0.957 | A10 + nartaa s6fall as a third equal leg |
 | Clean-track hedge | C3 `57186035` | 0.946 | no gated external data; ~7.5 h of the 9 h limit |
 | Own models alone | R5t 0.922 > R3 0.920 > R4 0.917 | | retired from the OAI track (cost ≈ −0.001 each time) |
@@ -206,5 +208,7 @@ There is no test suite for `scripts/llm_label_gold.py` or the notebook.
   DINOv2 ViT-S V2 gold 0.714). Only a new public release that passes an audit is still worth testing
   (`experiments/phase4/analysis/watch_public.py 0.958`). Details: `docs/phase4_notes.md`.
 - Clean track: ep0 fine-tune checkpoints (gold 0.925–0.927 vs ep1) are a cheap candidate.
+- A19/A21 exceeded 9 h on the hidden test (member stage before goodpjw's uncapped Part B). A22/A23 cap every extra stage;
+  pick rule: the best of A22/A23 replaces A16 only if strictly above 0.958 (tie A22/A23 → A22).
 - Final picks (`reports/final-selection.md`, 10-21): A16 + C3; A16 + A12 if the user accepts the OAI risk (A12 holds no
   LB-probed weights, best gold-58). Re-decide with `/kg-final` if the hosts rule on OAI.

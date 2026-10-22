@@ -739,3 +739,26 @@ A21 0.9428; ρ(R6 plain, R6 flip) 0.998 on gold-58, so dropping flip barely move
 visible at 3 decimals. A23's 0.957 is one display step below, the same gap as R6 plain vs flip in A12/A14 → A16; it is within
 public-LB noise and gold-58 ranked A23 first, so gold-58 again failed to predict a ±0.001 public step.
 Ledger: `0023_a22-oai` lb 0.958 inconclusive, `0022_a23-oai` lb 0.957 discard, `0015_a16-oai` baseline.
+
+## 2026-10-22 13:01 UTC: A24/A25/A26, slot-weight variants of A22 (user: "use all 3 submissions"; pre-registered before any number)
+
+The user chose to spend the last three submissions of 10-22 on variants, knowing that no candidate has evidence of beating
+0.958 and that a public gain of 0.001 is within noise. To keep A22's measured runtime (finished inside 9 h), each variant is
+A22 with **only the final blend weight changed** (A22's last cell): final = (1 − w) × A16-with-cohort + w × S6 slot, slot =
+rank(½ rank(s6fall) + ½ rank(S6T)), A22's w = 1/3.
+
+| Variant | w | Why |
+|---|---|---|
+| A24 | 1/2 | equal weight: the S6 family (decorrelated from A16, ρ ≈ 0.9) as much as the A16 stack |
+| A25 | 1/4 | between A16 (w = 0) and A22 |
+| A26 | 2/5 | between A22 and A24 |
+
+Fallbacks are A22's (any failed stage keeps the previous file). Guard, read once from the gold legs (a24_gate.py): each
+variant ≥ A16 − 0.003 on gold-58, else it is not submitted. Dev run on the 3-row test as for A22 (same markers), then
+`kgkit validate`. **Pick rule (fixed now):** the variant with the highest public score replaces A16 as pick 1 only if it is
+strictly above 0.958; ties among variants go to the w closest to A22's 1/3 (A26, then A25, then A24). A score above 0.958 by
+0.001 is weak evidence (public LB noise ~0.001), and that is recorded next to any such pick.
+
+**A24/A25/A26 guard (`analysis/a24_gate.py`, read once): all PASS.** Gold-58 vs A16 0.9385: A22 (w 1/3) 0.9426, A24 (1/2)
+0.9411 (+0.0026, CI [−0.0054, +0.0106]), A25 (1/4) 0.9423 (+0.0038), A26 (2/5) 0.9424 (+0.0039); ρ with A16 0.976–0.990.
+(A22 reads 0.9426 here against 0.9428 in a21_gate.py: same legs, the A16 base is rebuilt through a23_gate's helper.)

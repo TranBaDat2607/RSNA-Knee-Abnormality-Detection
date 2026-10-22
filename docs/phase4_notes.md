@@ -697,7 +697,7 @@ before 9 h") did not bound the notebook. Hidden-test logs are not visible, so th
 or a member that hung on the full test, e.g. a Pool worker lost to host-OOM) cannot be read. The 3-decimal tie of A16,
 A17 and A20 is also what a skipped s6fall stage would give (s6fall needs ≥ 70 min left after Part B).
 
-## 2026-10-22 03:45 UTC: A22 and A23, runtime-safe forms of A21 (pre-registered before any A23 number)
+## 2026-10-22 02:50 UTC: A22 and A23, runtime-safe forms of A21 (pre-registered before any A23 number)
 
 **A22** = A21 with runtime fixes only; when every stage finishes, its predictions are A21's (gold 0.9428, guard already passed):
 1. The cohort member runs in its own session (process group). It starts only with ≥ 1.5 × RAPTOR_SECONDS + 10 min + 120 min

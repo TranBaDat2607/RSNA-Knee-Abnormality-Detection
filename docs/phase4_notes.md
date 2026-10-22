@@ -762,3 +762,7 @@ strictly above 0.958; ties among variants go to the w closest to A22's 1/3 (A26,
 **A24/A25/A26 guard (`analysis/a24_gate.py`, read once): all PASS.** Gold-58 vs A16 0.9385: A22 (w 1/3) 0.9426, A24 (1/2)
 0.9411 (+0.0026, CI [−0.0054, +0.0106]), A25 (1/4) 0.9423 (+0.0038), A26 (2/5) 0.9424 (+0.0039); ρ with A16 0.976–0.990.
 (A22 reads 0.9426 here against 0.9428 in a21_gate.py: same legs, the A16 base is rebuilt through a23_gate's helper.)
+
+**Dev runs passed** (A24/A25 12:45–13:16 UTC, A26 13:17–13:46 UTC; `analysis/dev_check.py`): every A22 marker, `flip_tta True`,
+`A20_BLEND_DONE w 0.500 / 0.250 / 0.400`, `kgkit validate` OK. **Submitted:** A24 (`0024_a24-oai`) and A25 (`0025_a25-oai`)
+at 13:20 UTC, A26 (`0026_a26-oai`) at 13:48 UTC; no submissions left on 10-22. With A22's ≤ 8.8 h, results land by ~22:40 UTC.

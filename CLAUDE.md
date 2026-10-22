@@ -23,6 +23,7 @@ every study has a free-text report, which this repo turns into training targets 
 | OAI-track | A20 `57490753` | 0.958 | A17 + our S6T in the S6 slot; tie → A16 stays |
 | OAI-track | A22 `57507780` | 0.958 | runtime-safe A21 (cohort + s6fall + S6T); tie → A16 stays |
 | OAI-track | A23 `57507775` | 0.957 | A22 with R6 plain; A19/A21 hit the 9 h limit |
+| Grading (10-22 13:20–13:48 UTC) | A24 / A25 / A26 | – | A22 with S6-slot weight 1/2, 1/4, 2/5; best replaces A16 only if > 0.958 |
 | Previous OAI pick | A12 `57197656` | 0.957 | A10 + nartaa s6fall as a third equal leg |
 | Clean-track hedge | C3 `57186035` | 0.946 | no gated external data; ~7.5 h of the 9 h limit |
 | Own models alone | R5t 0.922 > R3 0.920 > R4 0.917 | | retired from the OAI track (cost ≈ −0.001 each time) |

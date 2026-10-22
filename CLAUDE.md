@@ -18,8 +18,12 @@ every study has a free-text report, which this repo turns into training targets 
 
 | Role | Submission | Public LB | Notes |
 |---|---|---|---|
-| OAI-track best | A17 `57401136` | **0.958** | public 0.9586 fork (A16) + nartaa s6fall third leg; rank 382 / 6,300 (1,448 tied at 0.958) |
-| OAI-track pending | A16 `57461357` | grading | public 0.9586 notebook unchanged; submitted 10-21 02:09 UTC; decides A16 vs A17 |
+| OAI-track pick | A16 `57461357` | **0.958** | public 0.9586 notebook unchanged; tie with A17 → A16 (10-19 rule) |
+| OAI-track | A17 `57401136` | **0.958** | A16 + nartaa s6fall third leg; rank 382 / 6,300 (1,448 tied at 0.958) |
+| OAI-track | A20 `57490753` | 0.958 | A17 + our S6T in the S6 slot; tie → A16 stays |
+| OAI-track | A22 `57507780` | 0.958 | runtime-safe A21 (cohort + s6fall + S6T); tie → A16 stays |
+| OAI-track | A23 `57507775` | 0.957 | A22 with R6 plain; A19/A21 hit the 9 h limit |
+| Grading (10-22 13:20–13:48 UTC) | A24 / A25 / A26 | – | A22 with S6-slot weight 1/2, 1/4, 2/5; best replaces A16 only if > 0.958 |
 | Previous OAI pick | A12 `57197656` | 0.957 | A10 + nartaa s6fall as a third equal leg |
 | Clean-track hedge | C3 `57186035` | 0.946 | no gated external data; ~7.5 h of the 9 h limit |
 | Own models alone | R5t 0.922 > R3 0.920 > R4 0.917 | | retired from the OAI track (cost ≈ −0.001 each time) |
@@ -201,11 +205,12 @@ There is no test suite for `scripts/llm_label_gold.py` or the notebook.
 
 ## Open items (update here when they change)
 
-- Another strong, decorrelated leg for A12: phase 4 tried three and all failed their gates (S6T 0.9315 but ρ s6fall 0.945;
-  R6 swap = A14, public 0.957 = A12; V1 OrthoFoundation ViT-L ρ ≤ 0.89 but gold 0.896). Only a new public release that
-  passes an audit is still worth testing (`experiments/phase4/analysis/watch_public.py 0.957` daily). Details:
-  `docs/phase4_notes.md`.
+- Another strong, decorrelated leg: phase 4 tried six and all failed their gates (S6T 0.9315 but ρ s6fall 0.945;
+  R6 swap = A14, public 0.957 = A12; V1 OrthoFoundation ViT-L ρ ≤ 0.89 but gold 0.896; V-JEPA 2.1 VJ/VJf gold 0.80;
+  DINOv2 ViT-S V2 gold 0.714). Only a new public release that passes an audit is still worth testing
+  (`experiments/phase4/analysis/watch_public.py 0.958`). Details: `docs/phase4_notes.md`.
 - Clean track: ep0 fine-tune checkpoints (gold 0.925–0.927 vs ep1) are a cheap candidate.
-- Final picks: OAI pick + C3. The OAI pick is A17 if A16 scores < 0.958, otherwise A16 (the 10-19 rule, tie → A16;
-  `docs/phase4_notes.md`). Re-decide with `/kg-final` if the hosts rule on OAI.
-- Use the GPU quota that expires 2026-10-17 00:00 UTC only on pre-registered work.
+- A19/A21 exceeded 9 h on the hidden test (member stage before goodpjw's uncapped Part B). Their capped forms finished:
+  A22 0.958 (tie), A23 0.957, so A16 stays the OAI pick (10-22 12:17 UTC).
+- Final picks (`reports/final-selection.md`, 10-21): A16 + C3; A16 + A12 if the user accepts the OAI risk (A12 holds no
+  LB-probed weights, best gold-58). Re-decide with `/kg-final` if the hosts rule on OAI.

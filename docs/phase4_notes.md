@@ -476,3 +476,293 @@ the notebook is cell-for-cell identical to `kernels/oai-a16`. `kgkit validate`: 
 - A16 > 0.958 → A16 is the pick.
 
 The clean-track hedge stays C3 (0.946). Final picks: the OAI pick from this rule + C3, unless `/kg-final` says otherwise.
+
+**A16 result (`57461357`): public 0.958**, a tie with A17 at 3 decimals. By the tie rule above, **A16 is the OAI pick**
+(ledger `0015_a16-oai`, keep; accepted baseline). No public notebook scores above 0.958 (search 10-21 09:40 UTC:
+goodpjw 0.958, heliosli 0.9586, evgendvorkin `rsna-versia-7` 0.958 (same legs as A16: nartaa SWA, R6, R7, goodpjw reader),
+lavinwins `rsna-gold-medal` (the 0.943 clean stack with a reworked combination layer; its 0.958 badge is from another
+version) and `top-1-gold` (a training notebook)).
+
+## 2026-10-21: VJ, nurikw3's V-JEPA 2.1 5-fold checkpoints as a fourth-family leg (pre-registered before any VJ code ran)
+
+**What it is.** `nurikw3/rsna-knee-vjepa21-checkpoints` (public, 2026-10-19, 237 downloads, no public notebook uses it):
+five folds of a V-JEPA 2.1 ViT-B video encoder (`vit_base`, patch 16, tubelet 2, RoPE), fully fine-tuned, with a
+2-layer spatial/slice transformer MIL head. Input: 5 views (Ax FS, Sag non-FS, Cor FS, Sag FS, Cor non-FS) × 16 slices at
+320 px, 150 mm centre crop, no laterality normalisation. Every A16 leg is a CNN or CoAtNet; V1 showed that a ViT family is
+decorrelated from them (ρ 0.84–0.89), so this is the first public candidate for the lever that worked (A12).
+**Audit (10-21):** the five `vjepa2/` source files match the upstream sha256 manifest; imports are torch, timm and einops
+only; no network, subprocess or exec calls in `infer.py`, `finetune_model.py` or `vjepa2/`. **Unknown:** how it was
+trained (no notebook, no description): the gold-58 studies may be in its training folds, so the gold read gets a leak guard.
+Two weight sets we also checked and dropped: `neronrx/mycelis-rsna-knee-4fold-hive` (its own OOF on the 58 gold studies
+scores 0.596 against train.csv, i.e. broken) and `tensorhydra/rsna-knee-oai-weights` (Raptor fine-tuned on OAI, its own
+JSONs give gold 0.902 per fold, weaker than nartaa 384 0.923 and the same family).
+
+**Deployment form (fixed now).** The author's `infer.py` preprocessing and model unchanged, 5-fold mean of sigmoid
+probabilities, the studies split over the two T4s (one process per GPU). Precision: fp16 autocast (T4 has no bf16) if on
+the 58 gold studies max |p_fp16 − p_fp32| ≤ 0.01 with no NaN; otherwise fp32.
+
+**A18 (OAI)** = A16 unchanged + a VJ stage appended after A16's last cell: final = 3/4 × rank(A16 file) + 1/4 × rank(VJ).
+Time guard as in A12: the stage starts only with ≥ 75 min left and leaves 25 min; any failure or < 90 % coverage keeps
+A16's file.
+
+**Gate (`analysis/vj_gate.py`, read once).**
+1. VJ gold-58 (5-fold mean, deployment precision) ≥ 0.925.
+2. Leak guard: every single fold < 0.975 on gold-58 (a fold that trained on the gold labels would memorise them).
+3. Mean Spearman of VJ ≤ 0.90 against each of the Raptor half (0.65 n384 + 0.35 n224), R6 flip and s6fall.
+4. A18 from the gold legs ≥ A16 − 0.003 on gold-58 (A16 as in `a17_gate.py`).
+5. Runtime: A16's hidden-test run (≈ 5.3 h estimated from A14 ≤ 4.3 h + R6 flip + reader) + VJ stage projected from the
+   gold timing (s/study per worker × 1,322 / 2 × 1.15) ≤ 8.0 h.
+
+A18 is submitted if the gate holds and its dev run on the 3-row test passes. **A18 replaces A16 as the OAI pick only if
+its public score is strictly above 0.958.**
+
+**VJ gate result (`analysis/vj_gate.py`, read once, 10:20 UTC 10-21): FAIL (rules 1 and 4).** The gold kernel
+(`rsna-knee-vj-gold58` v1, 12 min on 2×T4) ran cleanly: the image's einops, 5 folds loaded in 174 s, no NaN, fp16 vs fp32
+max |Δp| 0.0026, so fp16 is the deployment precision.
+
+| | gold-58 macro | note |
+|---|---|---|
+| VJ (5-fold mean, fp16) | **0.539** | folds 0.516–0.543 (leak guard passes trivially) |
+| ρ VJ vs Raptor half / R6 flip / s6fall | 0.150 / 0.150 / 0.146 | |
+| A18 = 3/4 A16 + 1/4 VJ | 0.9180 vs A16 0.9387 | −0.0207, CI [−0.0341, −0.0081] |
+| VJ stage, projected | 8.98 s/study/worker (decode 6.6 + fp16 2.4) → 1.90 h | rule 5 passes (7.2 h) |
+
+**A18 is not submitted** (ledger `0016_vj-gold58`, discard). Its dev run (`rsna-knee-oai-a18` v1) did pass the integration
+check (VJ stage 370 s, 3/3 scored, `A18_BLEND_DONE`), so the code path itself works.
+**Why VJ is near chance:** its workers report 1.84 views present per gold study, while the series table offers 4.69 of
+its five (plane, fluid) views per gold study. The author's `_load_source_slices` fails on most series and
+`load_study_tensor` swallows the exception, so the model mostly sees zero tensors. A CPU-only diagnostic kernel
+(`rsna-knee-vj-diag`, no labels read) is checking whether this is an environment failure (e.g. a DICOM decoder) that a
+harness fix would remove. Any re-test after such a fix is a new pre-registered experiment, not a re-read of this gate.
+
+**Diagnostic result (`rsna-knee-vj-diag`, CPU, 12 gold studies, no labels read):** all 57 candidate series are uncompressed
+(explicit VR little endian), so codecs are not the issue. **Every series with more than 24 files fails** in the author's
+`_load_source_slices` at `pydicom.dcmread(ds.filename)` with `TypeError: dcmread: Expected a file path, file-like or
+readable buffer, but got FileDataset` (the image's pydicom); 37 of 57 series. Series with ≤ 24 files decode fine (20 of 57).
+So the 0.539 measured a broken harness: the model saw zero tensors for about 60 % of its views.
+
+## 2026-10-21: VJf, the same VJ leg with the slice-reread bug fixed (pre-registered before any VJf run)
+
+**Change (harness only).** Reproduced locally on a synthetic 30-slice series: in the >24-file branch the author passes
+header *datasets* to `_ordered_datasets`, which expects *paths* and calls `dcmread` on them again (the TypeError). `infer.py`
+is loaded from the dataset with two text replacements, each asserted to occur exactly once: that call becomes
+`_vj_ordered_headers(files)` (headers only, ordered by `_ordered_datasets`' own IPP rule, each header remembering its
+path), and the pixel re-read of the 24 chosen slices uses that path. Checked locally: 24 distinct slices in position
+order; the ≤24-file branch is unchanged. Slice choice, ordering,
+crop, normalisation, model and folds stay exactly the author's. Nothing is chosen from gold labels; the fix follows from
+a label-free diagnostic. The deployed worker also prefetches the next study's decode in a thread while the GPU runs the
+current one (identical outputs, only faster); the gold kernel stays serial so its timing is a conservative projection.
+
+**Gate: VJ's five rules unchanged, read once (`analysis/vj_gate.py` on the `rsna-knee-vj-gold58` v2 outputs).**
+A18 (rebuilt with the fix) is submitted if the gate holds and its dev run passes; it replaces A16 as the OAI pick only if
+its public score is strictly above 0.958. If VJf fails, the V-JEPA line is closed.
+
+**VJf gate result (`analysis/vj_gate.py` on `rsna-knee-vj-gold58` v2, read once, 10:52 UTC): FAIL (rules 1 and 4).**
+The fix works: 4.69 views present per gold study (= the series table), decode 2.6 s/study, fp16 vs fp32 max |Δp| 0.0023.
+
+| | gold-58 macro | note |
+|---|---|---|
+| VJf (5-fold mean, fp16) | **0.800** | folds 0.775–0.798; best Contusion 0.923, Medial OA 0.909, Effusion 0.898; MCL 0.655 |
+| ρ VJf vs Raptor half / R6 flip / s6fall | 0.762 / 0.700 / 0.708 | the most decorrelated leg we have measured |
+| A18 = 3/4 A16 + 1/4 VJf | 0.9232 vs A16 0.9387 | −0.0155, CI [−0.0244, −0.0085]; every finding ≤ 0 |
+| VJf stage, projected | 5.0 s/study/worker → 1.06 h (+ up to 10 min model load) | rule 5 passes |
+
+V-JEPA is a real, very decorrelated model but far too weak (0.80 against 0.93 for each A16 leg), so it costs gold at the
+pre-registered weight. **The V-JEPA line is closed** (ledger `0016_vj-gold58`, `0017_vjf-gold58`: discard; A18 v2 dev run
+passed the integration check and is not submitted). We will not search for a smaller weight on gold-58 (rule: gold-58 is
+not used to tune weights).
+
+## 2026-10-21: V2 gate result (read once, `analysis/v2_gate.py gate`, 14:45 UTC): FAIL (rules 1 and 3)
+
+Kernel `rsna-knee-v2-gold58` v1 (gate mode, stride 1, all four finished seeds: GPU 11, 12 from `v2-train`, TPU 13, 14 from
+`v2-tpu-train`; 58 of 58 studies, no failures, 13 min wall on 2×T4). The rules are those of the 10-17 pre-registration;
+its "A16" is the 10-17 name for 3/4 × A12 + 1/4 × rank(V2), not the later public-0.9586 fork.
+
+| | gold-58 macro | note |
+|---|---|---|
+| V2 (4-seed mean logit) | **0.714** | seeds 0.557 / 0.642 / 0.637 / 0.739 (s11–s14); best Effusion 0.899, Lateral OA 0.882 |
+| ρ V2 vs raptor / R7 / s6fall | 0.451 / 0.399 / 0.418 | rule 2 passes only because the leg is close to noise |
+| 3/4 A12 + 1/4 V2 | 0.9336 vs A12 0.9404 | −0.0068; rule 3 fails |
+
+The flat training losses seen on 10-19 meant what they looked like: the fully fine-tuned ViT-S never learned under this
+recipe. **V2 is closed** (ledger `0018_v2-gold58`: discard). No A19 is built. Every own or new-public leg tested in phase 4
+(S6T, R6 swap, V1, VJ, VJf, V2) has failed its gate; the OAI pick stays A16 (`57461357`, 0.958) and the clean hedge C3.
+
+## 2026-10-21 15:35 UTC: A19, more Raptor-384 checkpoints averaged into A16's strongest leg (pre-registered before any run)
+
+**Why.** The public pool has no new family left (watch 10-21 14:40 UTC; `rsna-gold-medal`'s 0.958 belongs to an older
+version, its current code is the 0.943 clean stack). Since 10-20, three public datasets have released *re-trained*
+Raptor CoAtNet-384 checkpoints of the same format as nartaa's 384 model (A16's main leg): `ephemeralbyte/rsna-knee-fullb-w`
+`raptor_ft_oai384_fullb_swa.pt` (sha `900dddb5…`), `manatoshoji03/rsna-knee-coat-extra2` `coatnet_384_full_cohort_swa.pt`
+(`755ee7dd…`), `manatoshoji03/rsna-knee-coat-extra` `raptor_ft_coat384_full_bs14.pt` (`df66a00b…`). As separate legs they
+fail rule ρ (same family). As extra members of the Raptor-384 slot they are checkpoint averaging: the textbook variance
+reduction, which needs no decorrelated family. A2 (+0.000 on the LB) is the honest prior: the expected gain is small.
+Audit: each file is a pickle of tensors only (globals: OrderedDict, FloatStorage, LongStorage, _rebuild_tensor_v2; read
+with `pickletools`, nothing executed); key `model` with Raptor key names; no `arch`/`res`, so the script's defaults
+(`coatnet_rmlp_2_rw_384`, 384) apply. Code: A16's own Raptor-384 script (nartaa, audited 10-19) with only the checkpoint
+name and SHA pins swapped, and gold-root / output names for the gold kernel.
+
+**Gold kernel (`rsna-knee-a19-gold58`).** Runs that script on the 58 gold studies for nartaa's 384 (reference: must match
+`gold_acc` in ranks, ρ ≥ 0.99) and each of the three checkpoints.
+
+**Member rule (read once, `analysis/a19_gate.py`).** A checkpoint is a member if (1) it loads strictly and scores ≥ 95 %
+of the gold studies, (2) gold-58 ≥ 0.925, (3) gold-58 < 0.975 (leak guard; "full" fits may have trained on the gold
+studies), (4) ρ vs nartaa 384 ≤ 0.995 (not a byte-level twin). Members are taken in the fixed order fullb → cohort_swa →
+bs14, **at most 2** (runtime).
+**Blend (fixed now).** Raptor-384 slot = equal-weight rank mean of nartaa 384 and the members. Everything else is A16
+unchanged (0.65/0.35 with the 224 model, per-finding Raptor weights against R6 flip, goodpjw reader).
+**Guard.** A19 gold-58 ≥ A16 − 0.003 (regression guard only; gold-58 cannot resolve the expected gain).
+**Runtime.** Each member stage runs after stage 2 (R6 flip), only with ≥ 135 min left before 9 h, and must end 60 min before it (amended 15:50 UTC, before any read: stricter than the 100 min first written, so the reader keeps its slot). On any failure,
+or < 90 % coverage, the slot keeps the members that finished, down to nartaa 384 alone (= A16).
+**Submit** if the member rule yields ≥ 1 member, the guard holds and the dev run passes. A19 replaces A16 as the OAI pick
+only if its public score is strictly above 0.958.
+
+## 2026-10-21 16:00 UTC: A20, our own S6T inside A17's S6 slot (pre-registered before any A20 number)
+
+**Why (user direction 10-21: "create your own solution from all past experiments").** Our models alone top out at gold
+0.90–0.93 (R3/R5t, ftC5o, S6T, V1, V2), so a standalone own pipeline cannot reach 0.958 by the deadline. What our
+experiments showed works is a strong leg with different *labels or pipeline* inside the public stack (s6fall: A10 → A12
++0.001; teach4opus labels: every fine-tune +0.005 on gold; ftC5o: C2 → C3 +0.001). Our strongest own model is **S6T**
+(heliosli's S6 recipe retrained by us on our `teach4opus` labels, gold-58 excluded from training; gold 0.9315). It failed
+A13's gate only because A12 already holds s6fall (ρ 0.945). A16 has no S6-family model, and A17 adds s6fall alone. A20
+gives that slot two label sources: nartaa's labels (s6fall) and ours (S6T).
+
+**Form (fixed now).** A20 = A17 with the S6 slot = rank(½ rank(s6fall) + ½ rank(S6T)); final = 2/3 × A16 + 1/3 × slot.
+S6T = mean logit of its seeds (2 if the time guard allows, else 1, else none). A study S6T did not score takes s6fall's
+rank (= A17). S6T coverage < 90 % or any S6T problem keeps A17's file; any s6fall problem keeps A16's (A17's own rule).
+**Code.** A13's hook unchanged in substance (S6T as `--models2` in s6fall's `compact_infer` call, `--w2 0`, logit rows
+split out before s6fall's strict checks), now choosing 2, 1 or 0 seeds by the time left. Weights from the new private
+dataset `tranbadat/rsna-knee-s6t-weights` (sha s7 `242b37df…`, s8 `b16d32ee…` = the 10-16 training outputs).
+**Guard (gold-58, regression only).** A20 ≥ A16 − 0.003, from the existing gold legs (`gold_s6t.csv`, `gold_s6fall.csv`).
+**Dev run** must show `S6T_ATTACH True`, 3 logit rows per study, the A20 blend done, and `kgkit validate` OK.
+**Submit** if guard and dev run pass. A20 replaces A16 as the OAI pick only if its public score is strictly above 0.958;
+if A19 and A20 both are, the higher public score; a tie between them → A20.
+
+**A20 guard (`analysis/a20_gate.py`, read once, 16:03 UTC): PASS.** S6T 0.9315 (ρ s6fall 0.945, Raptor half 0.900, R6 flip 0.898);
+A20 0.9396 vs A16 0.9387 (+0.0009, CI [−0.0039, +0.0056]) and A17 0.9395 (+0.0001). As expected, gold-58 cannot tell
+A20 from A17; the case for A20 is label diversity in the S6 slot, not a gold gain. Dev run `rsna-knee-oai-a20` v1 pushed 16:05 UTC.
+
+**A19 gate result (`analysis/a19_gate.py`, read once, 16:30 UTC): PASS, one member (`cohort`).** Harness: nartaa 384 run
+through the A19 kernel = `gold_acc` (0.9229, ρ 1.000).
+
+| checkpoint | coverage | gold-58 | ρ vs nartaa 384 | result |
+|---|---|---|---|---|
+| fullb (ephemeralbyte) | 1.000 | 0.9120 | 0.918 | fails rule 2 (< 0.925) |
+| **cohort** (manatoshoji `coatnet_384_full_cohort_swa`) | 1.000 | **0.9296** | **0.904** | **member** |
+| bs14 (manatoshoji) | 0.000 | 0.527 | 0.05 | fails rule 1: non-finite fp16 logits on every study |
+
+A19 = A16 with the 384 slot = rank mean(nartaa 384, cohort): gold 0.9406 vs A16 0.9385 (+0.0021, CI [−0.0027, +0.0075]);
+guard passes. Per finding: Synovitis +0.020, MCL +0.014, Contusion/Fracture −0.007. Gold time on 58 studies: cohort 97 s vs
+nartaa 116 s, so the member stage is ≈ 45–50 min on 1,322 studies. Dev run `rsna-knee-oai-a19` v1 pushed 16:32 UTC.
+
+## 2026-10-21 16:40 UTC: A21 = A19 + A20, our full ensemble (pre-registered before any A21 number and before any A19/A20 score)
+
+A21 = A16 with A19's 384 slot (rank mean of nartaa 384 and cohort) and A20's S6 slot at 1/3:
+final = 2/3 × A19 + 1/3 × rank(½ rank(s6fall) + ½ rank(S6T)). Same code as A19 (member stage after R6, merge before stage 3)
+followed by A17's s6fall stage with A20's S6T hook and A20's blend. Runtime ≈ A16 + 0.8 h (cohort) + 1.5 h (s6fall)
++ 0.85 h per S6T seed; every extra is guarded (member ≥ 135 min left; s6fall ≥ 70 min; S6T seeds 2/1/0 by the time left),
+so a late run degrades to A19 + s6fall, A19, or A16, never to a failure. Guard: A21 gold-58 ≥ A16 − 0.003.
+Submit if the guard and the dev run pass (same checks as A19 and A20). **Pick rule (fixed now):** among A19, A20 and A21,
+the highest public score replaces A16 as the OAI pick only if it is strictly above 0.958; ties among them → A21
+(most legs and label sources), and a tie with 0.958 keeps A16.
+
+**A21 guard (`analysis/a21_gate.py`, read once, 16:33 UTC): PASS.** A21 0.9428 vs A16 0.9385 (+0.0043, CI [−0.0022, +0.0110]),
+A19 0.9406. The highest gold-58 of any blend so far (A12 0.9406), still inside gold-58's noise. Dev run pushed.
+
+**A19 dev run v1 passed** (16:32–16:44 UTC): Raptor 384 (93 s), member `cohort` rc 0 (42 s), `A19_SLOT_DONE` (0 no-model
+studies), R6 flip 3/3 scored, 0 fallback; Part B blended 3 reader checkpoints (the known offline `pylibjpeg-libjpeg` pip
+miss, as in A16/A17); `NOTEBOOK_COMPLETE`; `kgkit validate` OK. **Submitted 2026-10-21 16:45 UTC (ledger `0020_a19-oai`).**
+
+**A20 dev run v1 passed** (queued until 16:45, done 16:59 UTC): Raptor 384/224, R6 flip 3/3, 0 fallback, Part B 3 checkpoints;
+`S6T_ATTACH True seeds 2` (the `--models2` path works in s6fall's launcher), `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`
+3/3, `A20_BLEND_DONE` s6fall 3, S6T 3; `kgkit validate` OK. **Submitted 2026-10-21 17:00 UTC (ledger `0019_a20-oai`).**
+
+**A21 dev run v1 passed** (16:45–17:07 UTC): cohort member rc 0, `A19_SLOT_DONE`, R6 flip 3/3, 0 fallback, Part B 3 checkpoints,
+`S6T_ATTACH True seeds 2`, `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`, `A20_BLEND_DONE` 3/3; `kgkit validate` OK.
+**Submitted 2026-10-21 17:08 UTC (ledger `0021_a21-oai`).** Hidden-test runtime ≈ A16 + 0.8 + 1.5 + 0.85 per S6T seed; the S6T
+guard drops to one seed (or none) if s6fall starts with < 3.65 h left, so the expected worst case is A19 + s6fall + 1 seed.
+
+## 2026-10-22 02:46 UTC: A19/A20/A21 results
+
+| Submission | Public | Status |
+|---|---|---|
+| A20 `57490753` (A17 + S6T in the S6 slot) | **0.958** | complete; tie with A16 → A16 stays (pick rule) |
+| A19 `57490320` (A16 + cohort in the 384 slot) | – | **"exceeded the allowed runtime"** (9 h) |
+| A21 `57490994` (A19 + A20) | – | **"exceeded the allowed runtime"** (9 h) |
+
+All three turned COMPLETE in the same 20-minute poll window (02:26–02:46 UTC), so A20 also ran close to 9 h. The two
+timeouts share one element: the cohort member stage, which sits after R6 and **before Part B**. Part B (goodpjw's reader)
+starts whenever less than 8.2 h has passed and its reader subprocess has **no timeout**, so the member's guard ("end 60 min
+before 9 h") did not bound the notebook. Hidden-test logs are not visible, so the exact split (a slow base, a slow Part B,
+or a member that hung on the full test, e.g. a Pool worker lost to host-OOM) cannot be read. The 3-decimal tie of A16,
+A17 and A20 is also what a skipped s6fall stage would give (s6fall needs ≥ 70 min left after Part B).
+
+## 2026-10-22 02:50 UTC: A22 and A23, runtime-safe forms of A21 (pre-registered before any A23 number)
+
+**A22** = A21 with runtime fixes only; when every stage finishes, its predictions are A21's (gold 0.9428, guard already passed):
+1. The cohort member runs in its own session (process group). It starts only with ≥ 1.5 × RAPTOR_SECONDS + 10 min + 120 min
+   left, and the whole group is killed at 1.5 × RAPTOR_SECONDS + 10 min (RAPTOR_SECONDS = the measured time of stage 1, the
+   same script with an equal-size checkpoint). A hang now costs at most that cap; the 384 slot stays A16's.
+2. Part B's reader subprocess gets a timeout that ends it 25 min before 9 h; on timeout Part B's own except-branch keeps the
+   stage-3 file. On a normal run nothing changes.
+3. s6fall + S6T as in A20/A21 (self-calibrating: ≥ 70 min to start, budget leaves 25 min, S6T seeds by the time left).
+
+**A23** = A22 with R6's flip TTA off (`FLIP_TTA = False`, R6 plain as in A12/A14). On the gold-58 steady state flip costs
+19.8 s/study/worker against 10.3 plain, ≈ 1.75 h on 1,322 studies; that is the room the member, s6fall and S6T need.
+Our own evidence: TTA gave nothing measurable (phase 3); decorrelated legs were the lever that worked. Guard (read once, from
+the gold legs, R6 plain = `gold_r6_plain.csv`): A23 gold-58 ≥ A16 − 0.003.
+
+Both: submit if the guard and a dev run on the 3-row test pass (markers `A22_MEMBER`/merge, R6 scored 3/3, Part B ran,
+`A20_BLEND_DONE`, `kgkit validate` OK). **Pick rule (fixed now):** among A22 and A23 (A20 is 0.958), the highest public score
+replaces A16 as the OAI pick only if it is strictly above 0.958; a tie between A22 and A23 → A22 (it keeps A16's R6 flip);
+a tie with 0.958 keeps A16.
+
+**A23 guard (`analysis/a23_gate.py`, read once, 02:58 UTC): PASS.** A23 0.9439 vs A16 0.9385 (+0.0054, CI [−0.0005, +0.0119]);
+A21 0.9428; ρ(R6 plain, R6 flip) 0.998 on gold-58, so dropping flip barely moves R6.
+
+**Dev runs v1 passed** (02:56–03:27 UTC; `analysis/dev_check.py`): both have `RAPTOR_STAGE_DONE`, `A22_MEMBER cohort rc 0 ok True`
+(A22 109 s, cap 872 s; A23 51 s, cap 735 s), `A19_SLOT_DONE`, R6 3/3 (`flip_tta True` in A22, `False` in A23),
+`NOTEBOOK_COMPLETE`, Part B 3 checkpoints, `S6T_ATTACH True seeds 2`, `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`,
+`A20_BLEND_DONE`; no fallback or skip lines; `kgkit validate` OK. **Submitted 2026-10-22 03:27 UTC:** A23 (ledger
+`0022_a23-oai`) and A22 (`0023_a22-oai`). Three submissions are left today; results expected about 12:00–13:00 UTC.
+
+**Results (read 2026-10-22 12:17 UTC).** Both completed inside the 9 h limit (no runtime error), between 11:08 and 12:17 UTC
+(≤ 8.8 h after submission, queueing included).
+
+| Submission | Public LB | Gold-58 |
+|---|---|---|
+| A22 `57507780` (A21 runtime-safe, R6 flip) | **0.958** | 0.9428 |
+| A23 `57507775` (A22 with R6 plain) | 0.957 | 0.9439 |
+
+**Pick rule applied:** neither is strictly above 0.958, so **A16 stays the OAI pick**. A22 is the fifth OAI blend at 0.958
+(A16, A17, A20, A22; heliosli's public notebook too): adding the cohort member, s6fall and our S6T on top of A16 moves nothing
+visible at 3 decimals. A23's 0.957 is one display step below, the same gap as R6 plain vs flip in A12/A14 → A16; it is within
+public-LB noise and gold-58 ranked A23 first, so gold-58 again failed to predict a ±0.001 public step.
+Ledger: `0023_a22-oai` lb 0.958 inconclusive, `0022_a23-oai` lb 0.957 discard, `0015_a16-oai` baseline.
+
+## 2026-10-22 13:01 UTC: A24/A25/A26, slot-weight variants of A22 (user: "use all 3 submissions"; pre-registered before any number)
+
+The user chose to spend the last three submissions of 10-22 on variants, knowing that no candidate has evidence of beating
+0.958 and that a public gain of 0.001 is within noise. To keep A22's measured runtime (finished inside 9 h), each variant is
+A22 with **only the final blend weight changed** (A22's last cell): final = (1 − w) × A16-with-cohort + w × S6 slot, slot =
+rank(½ rank(s6fall) + ½ rank(S6T)), A22's w = 1/3.
+
+| Variant | w | Why |
+|---|---|---|
+| A24 | 1/2 | equal weight: the S6 family (decorrelated from A16, ρ ≈ 0.9) as much as the A16 stack |
+| A25 | 1/4 | between A16 (w = 0) and A22 |
+| A26 | 2/5 | between A22 and A24 |
+
+Fallbacks are A22's (any failed stage keeps the previous file). Guard, read once from the gold legs (a24_gate.py): each
+variant ≥ A16 − 0.003 on gold-58, else it is not submitted. Dev run on the 3-row test as for A22 (same markers), then
+`kgkit validate`. **Pick rule (fixed now):** the variant with the highest public score replaces A16 as pick 1 only if it is
+strictly above 0.958; ties among variants go to the w closest to A22's 1/3 (A26, then A25, then A24). A score above 0.958 by
+0.001 is weak evidence (public LB noise ~0.001), and that is recorded next to any such pick.
+
+**A24/A25/A26 guard (`analysis/a24_gate.py`, read once): all PASS.** Gold-58 vs A16 0.9385: A22 (w 1/3) 0.9426, A24 (1/2)
+0.9411 (+0.0026, CI [−0.0054, +0.0106]), A25 (1/4) 0.9423 (+0.0038), A26 (2/5) 0.9424 (+0.0039); ρ with A16 0.976–0.990.
+(A22 reads 0.9426 here against 0.9428 in a21_gate.py: same legs, the A16 base is rebuilt through a23_gate's helper.)
+
+**Dev runs passed** (A24/A25 12:45–13:16 UTC, A26 13:17–13:46 UTC; `analysis/dev_check.py`): every A22 marker, `flip_tta True`,
+`A20_BLEND_DONE w 0.500 / 0.250 / 0.400`, `kgkit validate` OK. **Submitted:** A24 (`0024_a24-oai`) and A25 (`0025_a25-oai`)
+at 13:20 UTC, A26 (`0026_a26-oai`) at 13:48 UTC; no submissions left on 10-22. With A22's ≤ 8.8 h, results land by ~22:40 UTC.

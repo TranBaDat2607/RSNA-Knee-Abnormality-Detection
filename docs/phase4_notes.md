@@ -716,3 +716,12 @@ Both: submit if the guard and a dev run on the 3-row test pass (markers `A22_MEM
 `A20_BLEND_DONE`, `kgkit validate` OK). **Pick rule (fixed now):** among A22 and A23 (A20 is 0.958), the highest public score
 replaces A16 as the OAI pick only if it is strictly above 0.958; a tie between A22 and A23 → A22 (it keeps A16's R6 flip);
 a tie with 0.958 keeps A16.
+
+**A23 guard (`analysis/a23_gate.py`, read once, 02:58 UTC): PASS.** A23 0.9439 vs A16 0.9385 (+0.0054, CI [−0.0005, +0.0119]);
+A21 0.9428; ρ(R6 plain, R6 flip) 0.998 on gold-58, so dropping flip barely moves R6.
+
+**Dev runs v1 passed** (02:56–03:27 UTC; `analysis/dev_check.py`): both have `RAPTOR_STAGE_DONE`, `A22_MEMBER cohort rc 0 ok True`
+(A22 109 s, cap 872 s; A23 51 s, cap 735 s), `A19_SLOT_DONE`, R6 3/3 (`flip_tta True` in A22, `False` in A23),
+`NOTEBOOK_COMPLETE`, Part B 3 checkpoints, `S6T_ATTACH True seeds 2`, `S6F_STAGE_DONE failed 0`, `A12_BLEND_DONE`,
+`A20_BLEND_DONE`; no fallback or skip lines; `kgkit validate` OK. **Submitted 2026-10-22 03:27 UTC:** A23 (ledger
+`0022_a23-oai`) and A22 (`0023_a22-oai`). Three submissions are left today; results expected about 12:00–13:00 UTC.

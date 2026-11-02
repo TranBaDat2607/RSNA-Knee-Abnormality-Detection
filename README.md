@@ -9,7 +9,7 @@ fracture) from knee MRI, scored as macro ROC AUC.
 | **Private leaderboard** | **0.943, rank 320 / 6,299 (top 5.1 %), 🥉 bronze** |
 | Public leaderboard | 0.958, rank 422 |
 | Winning private score | 0.960 |
-| Final submission | [`rsna-knee-oai-a20`](https://www.kaggle.com/code/tranbadat/rsna-knee-oai-a20), a blend of audited public models and my S6T model |
+| Published notebook | [`rsna-knee-oai-a20`](https://www.kaggle.com/code/tranbadat/rsna-knee-oai-a20) (A20, private 0.943), a blend of audited public models and my S6T model |
 | Dates | 2026-08-05 → 2026-10-22, code competition (offline, 9 h limit) |
 
 Standings read 2026-11-02. Silver ended near rank 315; 287 teams share 0.943 at three decimals.
@@ -47,7 +47,7 @@ The final score relies mostly on public notebooks and weights. My own models alo
 | Clean 4-arm CoAtNet stack (E8) | 0.939 | 0.921 |
 | Best blend with no OAI-trained weights (C3) | 0.946 | 0.931 |
 | Public 0.9586 notebook, audited and unchanged (A16) | 0.958 | 0.942 |
-| **A16 + s6fall + my S6T (A20, final)** | **0.958** | **0.943** |
+| **A16 + s6fall + my S6T (A20)** | **0.958** | **0.943** |
 
 The only lever that worked late on was a strong, decorrelated extra leg. Weight tweaks, TTA, flip views and more checkpoints
 of the same family gave nothing measurable. Six candidate legs failed gates set in advance.
@@ -61,6 +61,8 @@ All scores by phase are in [`docs/results.md`](docs/results.md).
 - **A 58-study gold set can't rank close candidates.** Among my 12 strongest blends, its rank correlation with private was
   0.03, against 0.70 for the public leaderboard. It stayed useful as a regression guard.
 - **Public tracked private here.** The drop averaged 0.015 across 30 submissions, with almost no reordering.
+- **Tick your finals.** I didn't, and Kaggle picked from five tied 0.958 submissions. My planned picks would have
+  scored 0.942; the automatic ones scored 0.943. That was luck, not judgment.
 - **Plan runtime early.** Three of my last ten submissions exceeded 9 h on the hidden test and returned no score.
 
 <img src="docs/figures/public_vs_private.png" width="520" alt="Public against private score for each submission, close to a straight line 0.015 below public">

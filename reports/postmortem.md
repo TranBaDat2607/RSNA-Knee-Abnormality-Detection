@@ -37,8 +37,9 @@ Measured on our scored submissions, private and public to 3 decimals.
 - Gold-58 separates big steps and nothing near the top. Among the late blends it says nothing about private order. That
   confirms the rule used since 10-10: regression guard only, never a tiebreak on close candidates. Our highest gold-58
   (A23, 0.9439) scored 0.941 private, below A20's 0.943 on gold 0.9396.
-- The pre-registered A16 pick would have scored 0.942. The score of 0.943 shows the final selection included one of the
-  0.943 submissions. The API does not expose which two boxes were ticked.
+- **No finals were ticked.** `kgkit final` (2026-11-02) returns no selected submissions, so Kaggle used its automatic choice:
+  two of the best public scores. Five submissions tie at 0.958 (A16, A17, A20, A22, A24), and the team score of 0.943 means
+  at least one of A17, A20 or A22 was picked. The pre-registered pick A16 + C3 would have scored 0.942.
 
 ## What worked
 
@@ -95,6 +96,8 @@ gate rather than a target (38th's rule is close to ours), per-leg time guards wi
   (labels). An error analysis on gold-58 vs labels by finding, repeated in September, would have pointed there.
 - Automating the loop with Claude Code kept audits, dev runs, the ledger and kernels moving. It also made more blending
   cheap, which reinforced the wrong priority. Automation doesn't choose the direction.
+- Finals were never ticked on the website. The selection rule was written and the evidence table prepared, but the last
+  step needs a person, and a reminder near the deadline would have caught it.
 - Runtime needs a hard budget per stage from the first version of a blend, not a retrofit in the last 48 hours.
 
 ## Reusable takeaways

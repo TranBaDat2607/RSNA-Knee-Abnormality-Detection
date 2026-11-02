@@ -13,7 +13,8 @@ MRI; scored as macro ROC AUC over the twelve targets. Only 58 training studies (
 every study has a free-text report, which this repo turns into training targets with an LLM labeler.
 
 **The competition ended on 2026-10-22.** Final: private 0.943, public 0.958, rank 320 / 6,299 (read 2026-11-02), bronze.
-The scored submission recorded in the README is A20 `57490753`; the Kaggle API does not expose which two were ticked.
+No finals were ticked (`kgkit final`, 2026-11-02), so Kaggle auto-selected two of the five 0.958 public submissions;
+the 0.943 came from A17, A20 or A22. A20 is the published notebook.
 Full account: `reports/postmortem.md`, `docs/results.md`. Everything below is the working state as it was at the deadline.
 
 ### Where things stood at the deadline (public LB, read 2026-10-21)

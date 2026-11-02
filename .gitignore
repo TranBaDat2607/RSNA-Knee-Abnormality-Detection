@@ -41,3 +41,9 @@ experiments/phase2/analysis/disc/
 /kernels/
 experiments/phase4/kernels/oai-a13/*.ipynb
 experiments/phase4/kernels/oai-a15/*.ipynb
+
+# Competition data: report text and expert labels. Rebuild with scripts/extract_gold.py
+data/gold_annotated.csv
+
+# Forum export written by kgkit discussions sync
+reports/discussions.csv

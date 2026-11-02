@@ -1,0 +1,34 @@
+ref,date,track,public,private,what
+55429575,2026-08-11,own,0.813,0.804,baseline with label generated with gpt 5.4 mini
+55503088,2026-08-14,clean,0.910,0.889,earlier ensemble notebook (DINOv2 TTA + DINOv3 + RadImageNet)
+55523770,2026-08-15,clean,0.909,0.889,"kernel v2: V11 grounded blend (0.55 exact + 0.45 rankfold, drops n=3-fit target_stability/uncertainty/diversit"
+55569274,2026-08-17,clean,0.910,0.890,"V11 fitted-weights challenger (temp default override, kernel v4): per-target blend weights fit via regularized"
+56184308,2026-09-12,clean,0.939,0.921,"E8 clean baseline: public Raptor v5/v10/v8 equal-weight family + residual-gated CoAtNet 0.4, rank fusion, no D"
+56654316,2026-09-28,clean,0.938,0.924,"R1: public 0.943 (jiweiliu v11) + our 3-fold ConvNeXt-nano (gold-58 0.905, pseudo-label targets r1) rank blend"
+56753338,2026-10-01,own,0.917,0.907,"DIAG: R1 ConvNeXt-nano 3-fold leg ALONE (gold-58 0.905), rank space, no public stack"
+56787175,2026-10-03,own,0.920,0.906,"DIAG: R3 ConvNeXt-nano 336px 5-fold, 18 ep, slot-aware, targets_r2 (OOF vs teach4 0.880, gold-58 0.898), solo,"
+56787692,2026-10-03,clean,0.942,0.926,R3 blend: jiweiliu public 0.943 unchanged + our R3 ConvNeXt-nano 336 5-fold (solo 0.920) rank blend w=0.10 (pr
+56799230,2026-10-03,own,0.917,0.903,"DIAG: R4 = R3 recipe (nano 336px, 18 ep, 5-fold) on heavy-OOF targets_r4 (0.3 teach4 + 0.7 OOF mix), solo; com"
+56803647,2026-10-03,own,0.922,0.912,"DIAG: R5t = R3 recipe (nano 336px, 18 ep, 5-fold) on teach4 report labels only (no OOF), gold-58 0.905; compar"
+56814752,2026-10-04,own,0.924,0.913,R5t solo + full-data x2
+57051391,2026-10-10,clean,0.945,0.930,"CLEAN C2: community stack + goodpjw reader 0.30 + our ftC (Raptor v10 fine-tuned on d96 teach4, gold 0.921) 0."
+57051394,2026-10-10,oai,0.949,0.932,"OAI A3: goodpjw 0.950 (nartaa+reader) + nartaa 224 ckpt 0.25 in Part A + our R5t leg 0.10, pre-registered (gol"
+57051397,2026-10-10,oai,0.950,0.932,"OAI A2: goodpjw 0.950 (nartaa+reader) + nartaa 224 ckpt 0.25 in Part A, pre-registered (gold-58 +0.0027)"
+57110710,2026-10-12,oai,0.954,0.937,OAI A5: goodpjw 0.954 public notebook unchanged (nartaa OAI CoAtNet + heliosli S6 70/30 + goodpjw reader per-f
+57185288,2026-10-14,oai,0.956,0.941,OAI A6: varshithakolupuri 0.956 public notebook unchanged (nartaa 384 + 224 mirror at 0.35 of Raptor slot + he
+57185425,2026-10-14,oai,0.956,0.941,OAI A7: goodpjw v12 unchanged (A6 base + heliosli S6 0.3 of compact slot + reader 1/10); rule: replaces A6 onl
+57186035,2026-10-14,clean,0.946,0.931,"CLEAN C3: clean C2 with ftC5o (v5 start, teach4opus, gold 0.9242) replacing ftC at 0.20; rule: replaces C2 if "
+57197655,2026-10-14,oai,0.956,0.941,"OAI A10: heliosli 0.9573 notebook (nartaa 384 + 224 one view 0.35 + R7 50/50), R7 from versioned r7cnxfsss; ru"
+57197656,2026-10-14,oai,0.957,0.942,"OAI A12: A10 + nartaa s6fall (gold 0.931, no OAI) as third equal leg (2/3 A10 + 1/3 rank s6fall), time-guarded"
+57237639,2026-10-15,oai,0.957,0.942,D1 runtime probe: A12 v1 resubmitted unchanged to time the hidden-test run (score not a decision input)
+57269763,2026-10-16,oai,0.957,0.943,0011_a14 | A12 with compact leg R7 -> heliosli R6 plain (gold rule 2)
+57401136,2026-10-19,oai,0.958,0.943,"0010_a17-oai | OAI A17: heliosli public 0.9586 recipe (R6 flip, per-finding Raptor w, goodpjw reader) + nartaa"
+57461357,2026-10-21,oai,0.958,0.942,"0015_a16-oai | OAI A16: heliosli public 0.9586 notebook unchanged (R6 flip, per-finding Raptor w, goodpjw read"
+57490320,2026-10-21,oai,,,"0020_a19-oai | A19: A16 + manatoshoji cohort_swa averaged into the Raptor-384 slot (gold 0.9296, rho 0.904); g"
+57490753,2026-10-21,oai,0.958,0.943,"0019_a20-oai | A20: A17 with our S6T (S6 recipe retrained on teach4opus, gold-58 excluded) sharing the S6 slot"
+57490994,2026-10-21,oai,,,0021_a21-oai | A21 (our full ensemble): A16 + cohort in the Raptor-384 slot + s6fall and our S6T sharing the S
+57507775,2026-10-22,oai,0.957,0.941,0022_a23-oai | A23: runtime-safe A21 with R6 plain (flip off) so cohort + s6fall + our S6T fit in 9 h; gold 0.
+57507780,2026-10-22,oai,0.958,0.943,"0023_a22-oai | A22: A21 made runtime-safe (cohort member capped in its own process group, Part B reader capped"
+57525938,2026-10-22,oai,0.958,0.942,0024_a24-oai | A24: A22 with final S6-slot weight 1/2 (A22: 1/3); gold 0.9411 vs A16 0.9385
+57525941,2026-10-22,oai,,,0025_a25-oai | A25: A22 with final S6-slot weight 1/4 (A22: 1/3); gold 0.9423 vs A16 0.9385
+57526860,2026-10-22,oai,0.957,0.941,0026_a26-oai | A26: A22 with final S6-slot weight 2/5 (A22: 1/3); gold 0.9424 vs A16 0.9385

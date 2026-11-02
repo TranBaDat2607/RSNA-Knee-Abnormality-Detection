@@ -12,9 +12,11 @@ medial/lateral meniscus, medial/lateral/PF OA, effusion, synovitis, Baker's cyst
 MRI; scored as macro ROC AUC over the twelve targets. Only 58 training studies ("gold-58") carry expert labels;
 every study has a free-text report, which this repo turns into training targets with an LLM labeler.
 
-**Deadline: 2026-10-22 (23:59 UTC). 5 submissions/day, 2 final picks.**
+**The competition ended on 2026-10-22.** Final: private 0.943, public 0.958, rank 320 / 6,299 (read 2026-11-02), bronze.
+The scored submission recorded in the README is A20 `57490753`; the Kaggle API does not expose which two were ticked.
+Full account: `reports/postmortem.md`, `docs/results.md`. Everything below is the working state as it was at the deadline.
 
-### Where things stand (public LB, read 2026-10-21)
+### Where things stood at the deadline (public LB, read 2026-10-21)
 
 | Role | Submission | Public LB | Notes |
 |---|---|---|---|
@@ -54,9 +56,10 @@ says so). Do not stop to ask for approval on these.
   stages complete). Submit only a file that passes `python -m kgkit validate`.
 - Final-two selection is ticked on the Kaggle website — only the user can do that. Prepare the evidence table
   (`/kg-final`) and say which two.
-- Never print/commit credentials (`~/.kaggle/access_token`, `.env`). Do not publish teammates' private
-  notebooks or datasets in this public repo (the external `tranbadat/rsna-knee-abnormality` notebook is
-  deliberately **not** in git). Keep our own kernels/datasets private.
+- Never print/commit credentials (`~/.kaggle/access_token`, `.env`). Competition data never goes in git: `data/gold_annotated.csv` was
+  removed from all history on 2026-11-02 and is rebuilt locally with `scripts/extract_gold.py`. The early ensemble
+  notebook `tranbadat/rsna-knee-abnormality` is the user's own and is not in git. Keep kernels/datasets private by default;
+  the user chose to publish `rsna-knee-oai-a20` and `rsna-knee-s6t-weights` after the competition. S6T caches stay private.
 - Don't delete kernels/datasets/branches or force-push without being asked.
 - Keep the solution independent: public ideas and public notebooks are fine; no merging with other teams.
 
@@ -189,7 +192,7 @@ There is no test suite for `scripts/llm_label_gold.py` or the notebook.
 
 - **Phase 1 (labels, to 2026-08):** LLM labeler `gpt-5.4-mini` over all 4,407 reports (2.4M tokens, shared
   2.5M/day pool across the mini/nano family; resumable; `reasoning_effort: "none"`). Baseline notebook 0.813;
-  the external multi-person ensemble notebook (not in git) 0.910/0.909 — blend reshuffling among the same three
+  the early ensemble notebook (the user's own, not in git) 0.910/0.909 — blend reshuffling among the same three
   arms hit its ceiling. EfficientNet-B3 second arm: weak/mixed, not pursued.
 - **CoAtNet MIL program (to 2026-09-12):** the public 0.94 stack rests on the CoAtNet-RMLP-2 @384 2.5-D MIL
   family; pipeline/label diversity adds, more checkpoints of the same pipeline and backbone swaps do not.
@@ -203,7 +206,7 @@ There is no test suite for `scripts/llm_label_gold.py` or the notebook.
   + our fine-tuned ftC5o (C3). Rejected: our R5t as a leg, ftO, multi-scale TTA, flip TTA, S6 in the compact
   slot, 64-slice maxspan. Details: `docs/phase3_report.md`.
 
-## Open items (update here when they change)
+## Open items at the deadline (closed; kept for history)
 
 - Another strong, decorrelated leg: phase 4 tried six and all failed their gates (S6T 0.9315 but ρ s6fall 0.945;
   R6 swap = A14, public 0.957 = A12; V1 OrthoFoundation ViT-L ρ ≤ 0.89 but gold 0.896; V-JEPA 2.1 VJ/VJf gold 0.80;

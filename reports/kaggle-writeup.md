@@ -11,7 +11,7 @@ goodpjw2008, varshithakolupuri, dreaddevelopment and mattiaangeli.
 Most of this score comes from public notebooks and weights, so this is mainly a write-up about process and about what did
 and didn't move the score.
 
-## The final submission
+## The best submission (A20)
 
 A rank blend with three parts:
 
@@ -25,7 +25,7 @@ A rank blend with three parts:
 | My own ConvNeXt-nano models alone | 0.924 | 0.913 |
 | Best blend without OAI-trained weights | 0.946 | 0.931 |
 | Public 0.9586 notebook, unchanged | 0.958 | 0.942 |
-| **Final: + s6fall + S6T** | **0.958** | **0.943** |
+| **A20: + s6fall + S6T** | **0.958** | **0.943** |
 
 ## What I'd share as useful
 
@@ -40,6 +40,9 @@ ViT-L (gold 0.896), V-JEPA 2.1 (0.80) and DINOv2 ViT-S (0.714) were all rejected
 of the same family gave nothing measurable.
 
 **Public to private was steady for me:** the drop averaged 0.015 (range 0.009–0.021) over 30 scored submissions.
+
+**Tick your finals.** I forgot, and Kaggle chose from five submissions tied at 0.958 public. It landed on a 0.943
+one; my planned picks would have scored 0.942.
 
 **Budget runtime from the start.** Three of my last ten submissions exceeded 9 h and returned no score.
 

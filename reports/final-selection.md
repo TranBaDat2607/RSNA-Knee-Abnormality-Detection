@@ -62,6 +62,7 @@ above 0.958, so the recommendation is unchanged: **A16 `57461357` + C3 `57186035
 OAI risk).
 
 **Outcome (added 2026-11-02).** The team's final private score was 0.943, while this file's recommendation scores lower:
-A16 0.942 and C3 0.931. So the final selection was not A16 + C3 and included a 0.943 submission (A14, A17, A20 or A22). The
-README records A20 `57490753` as scored. The Kaggle API does not show the ticked boxes. The OAI weights were not ruled
+A16 0.942 and C3 0.931. `kgkit final` shows that no submissions were ticked, so Kaggle used its automatic choice: two of the best public
+scores, which here were five submissions tied at 0.958 (A16, A17, A20, A22, A24). At least one of A17, A20 or A22 was
+picked. The pre-registered A16 + C3 would have scored 0.942. The OAI weights were not ruled
 out, so the clean hedge was not needed. Analysis: `reports/postmortem.md`.
